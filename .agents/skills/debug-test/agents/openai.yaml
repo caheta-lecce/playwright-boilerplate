@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Debug Test'
+  short_description: 'Triage and fix a failing or flaky Playwright test'
+  default_prompt: 'Use $debug-test to find out why this test fails.'

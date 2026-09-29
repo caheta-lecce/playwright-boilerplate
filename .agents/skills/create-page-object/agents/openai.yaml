@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Create Page Object'
+  short_description: 'Build a page object and spec from the live app'
+  default_prompt: 'Use $create-page-object to add a page object for this page.'

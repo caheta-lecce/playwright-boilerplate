@@ -1,0 +1,10 @@
+node_modules/
+.auth/
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+coverage/
+.scannerwork/
+.worktrees/

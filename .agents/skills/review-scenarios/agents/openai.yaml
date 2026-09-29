@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Review Scenarios'
+  short_description: 'Review test-plan documents before implementation'
+  default_prompt: 'Use $review-scenarios to review the test-plan documents in docs/test-plans/.'

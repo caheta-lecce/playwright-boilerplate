@@ -1,0 +1,50 @@
+{
+  "name": "playwright-boilerplate",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reusable Playwright template with typed configuration, composed fixtures and page objects.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:list": "playwright test --list",
+    "report": "playwright show-report",
+    "lint": "eslint .",
+    "type:check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "ai:skills:sync": "node scripts/sync-ai-skills.mjs",
+    "ai:skills:check": "node scripts/sync-ai-skills.mjs --check"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml}": "prettier --write"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.62.1",
+    "@types/node": "25.9.5",
+    "dotenv": "^17.3.1",
+    "eslint": "10.8.0",
+    "eslint-plugin-playwright": "2.11.0",
+    "globals": "17.8.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "3.9.6",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "8.65.0",
+    "zod": "4.4.3"
+  }
+}

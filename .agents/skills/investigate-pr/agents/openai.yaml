@@ -1,0 +1,4 @@
+interface:
+  display_name: 'PR Investigator'
+  short_description: 'Understand review PRs with GitHub context'
+  default_prompt: 'Use $investigate-pr to analyze this GitHub pull request before review.'

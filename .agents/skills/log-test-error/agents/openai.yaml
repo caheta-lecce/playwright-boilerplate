@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Log Test Error'
+  short_description: 'Diagnose and log a Playwright test failure'
+  default_prompt: 'Use $log-test-error to diagnose and log this test failure in docs/troubleshooting.md.'

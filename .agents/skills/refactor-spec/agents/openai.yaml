@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Refactor Spec'
+  short_description: 'Refactor a Playwright spec to repo POM conventions'
+  default_prompt: 'Use $refactor-spec to refactor the given spec file to repository guidelines.'

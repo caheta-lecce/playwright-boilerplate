@@ -1,0 +1,4 @@
+interface:
+  display_name: 'PR Description Writer'
+  short_description: 'Draft a PR description from the current branch diff'
+  default_prompt: 'Use $pr-description-writer to draft a PR description for the changes on the current branch.'

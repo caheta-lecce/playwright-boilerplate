@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Safe Rename'
+  short_description: 'Change a shared value with impact analysis'
+  default_prompt: 'Use $safe-rename to change this shared value safely.'

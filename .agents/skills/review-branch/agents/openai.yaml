@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Review Branch'
+  short_description: 'Review a local branch against repository conventions'
+  default_prompt: "Use $review-branch to review branch <name> against this repository's conventions."
