@@ -32,19 +32,19 @@
     "*.{json,md,yml}": "prettier --write"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.12.1",
+    "@axe-core/playwright": "4.13.0",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "1.62.1",
+    "@playwright/test": "1.63.0",
     "@types/node": "25.9.5",
-    "dotenv": "^17.3.1",
-    "eslint": "10.8.0",
-    "eslint-plugin-playwright": "2.11.0",
-    "globals": "17.8.0",
+    "dotenv": "^18.0.5",
+    "eslint": "10.11.0",
+    "eslint-plugin-playwright": "2.12.0",
+    "globals": "17.13.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "prettier": "3.9.6",
+    "prettier": "3.9.9",
     "typescript": "~5.9.3",
-    "typescript-eslint": "8.65.0",
-    "zod": "4.4.3"
+    "typescript-eslint": "8.71.0",
+    "zod": "4.6.5"
   }
 }
