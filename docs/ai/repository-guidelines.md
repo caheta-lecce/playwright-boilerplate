@@ -3,6 +3,50 @@
 This repository is a reusable Playwright test template. Keep project URLs, credentials, customer
 data and integrations out of the template. Use dummy values and environment configuration.
 
+## Constitution
+
+Quick-reference floor for every change; the sections below hold the detail. Rows marked with a
+hook id are also enforced by the Claude Code PreToolUse hook (`.claude/scripts/guideline-rules.mjs`,
+also run by `review-branch`). The hook only covers rules checkable with near-zero false positives,
+so an unmarked row is still binding. When adopting the template, extend these tables with the
+project's own conventions.
+
+### MUST
+
+<!-- prettier-ignore -->
+| Rule | Requirement |
+| --- | --- |
+| **Page objects** | Specs interact with the app only through `<Name>Page` → `Actions` / `Locators`; no raw `page.click()` / `page.locator()` in specs. |
+| **Fixtures** | Specs and setup files import `test` / `expect` from `@fixtures/base`, never from `@playwright/test`; type-only imports are fine. Hook: `no-playwright-test-in-spec`. |
+| **Endpoints** | API paths live in `lib/api/endpoints/<domain>.ts` with a shared `BASE`. Hook: `no-hardcoded-api-path`. |
+| **Constants** | HTTP methods and statuses come from `lib/api/api-constants.ts`; URLs and credentials from validated environment configuration. |
+| **Schemas** | API responses are validated with Zod schemas under `src/models/<domain>/`, faithful to the contract and documented with endpoint and example. Hook: `schema-missing-jsdoc`. |
+| **Auth reuse** | Specs reuse the storage state saved by the setup project; only login specs log in inline. |
+| **Accessibility** | Call `scanAxe(label)` after reaching each meaningful UI state. |
+| **Verification** | Changed code passes `npm run type:check`, `npm run lint`, and `npm run format:check`, and affected specs are run before the work is called done. |
+
+### SHOULD
+
+<!-- prettier-ignore -->
+| Rule | Recommendation |
+| --- | --- |
+| **Locators** | Prefer `getByRole` > `getByLabel` > `getByPlaceholder` > `getByText` > `getByTestId` over CSS. |
+| **Direct navigation** | Navigate straight to the page under test instead of clicking through the UI to reach it. |
+| **Steps** | Group spec flows in `test.step()` so reports read as a sequence of user actions. |
+| **Why-comments** | Keep comments that explain a workaround, gotcha, or non-obvious decision. |
+
+### WON'T
+
+<!-- prettier-ignore -->
+| Rule | Violation |
+| --- | --- |
+| **No hard waits** | Never `waitForTimeout()`; wait on a condition (web-first assertion, `waitForResponse`, `toPass`). Hook: `no-hard-wait`. |
+| **No XPath** | Never XPath selectors in pages or specs. Hook: `no-xpath`. |
+| **No focused tests** | Never commit `test.only` / `describe.only`. Hook: `no-focused-test`. |
+| **No fixtures in specs** | Never `test.extend` inside a spec; fixtures live in `lib/fixtures/`. Hook: `no-fixture-in-spec`. |
+| **No secrets or client data** | Never commit credentials, auth artifacts, project URLs, or customer data. |
+| **No loosened contracts** | Never loosen a schema or expected status to make a test green; record the discrepancy and link its issue. |
+
 ## Structure
 
 - `lib/fixtures/`: shared fixture modules composed with `mergeTests()`.
