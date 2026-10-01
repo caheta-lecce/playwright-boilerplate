@@ -18,6 +18,7 @@ project's own conventions.
 | --- | --- |
 | **Page objects** | Specs interact with the app only through `<Name>Page` → `Actions` / `Locators`; no raw `page.click()` / `page.locator()` in specs. |
 | **Fixtures** | Specs and setup files import `test` / `expect` from `@fixtures/base`, never from `@playwright/test`; type-only imports are fine. Hook: `no-playwright-test-in-spec`. |
+| **Path aliases** | Imports outside the current folder use the `tsconfig.json` aliases (`@lib`, `@fixtures`, `@pages`, `@config`, `@shared`), including in `playwright.config.ts`; relative imports are only for same-folder siblings (`./x`). Lint: `no-restricted-imports`. |
 | **Endpoints** | API paths live in `lib/api/endpoints/<domain>.ts` with a shared `BASE`. Hook: `no-hardcoded-api-path`. |
 | **Constants** | HTTP methods and statuses come from `lib/api/api-constants.ts`; URLs and credentials from validated environment configuration. |
 | **Schemas** | API responses are validated with Zod schemas under `src/models/<domain>/`, faithful to the contract and documented with endpoint and example. Hook: `schema-missing-jsdoc`. |
