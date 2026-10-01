@@ -1,6 +1,7 @@
 # Agent instructions
 
-Read and follow [docs/ai/repository-guidelines.md](docs/ai/repository-guidelines.md) before editing.
+Read and follow [docs/ai/repository-guidelines.md](docs/ai/repository-guidelines.md) before editing;
+its **Constitution** section is the MUST / SHOULD / WON'T floor for every change.
 Keep shared conventions there. Add tool-specific configuration only in the corresponding tool folder.
 
 ## Skills
