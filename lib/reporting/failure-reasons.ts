@@ -1,4 +1,4 @@
-import { FailureDetail, FailureKey } from '@shared/types';
+import type { FailureDetail, FailureKey } from './failure-types';
 
 // Using SCREAMING_SNAKE_CASE for a global constant
 export const FAILURE_REASONS: Record<FailureKey, FailureDetail> = {
