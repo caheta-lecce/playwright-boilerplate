@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
-import { environment } from './src/config/environments';
-import { storageStatePath } from './lib/auth';
+import { environment } from '@config/environments';
+import { storageStatePath } from '@lib/auth';
 
 const browsers = [
   { name: 'chromium', device: 'Desktop Chrome' },
@@ -13,7 +13,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  workers: process.env.CI ? '100%' : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: { baseURL: environment.BASE_URL, trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   webServer:
@@ -28,7 +28,7 @@ export default defineConfig({
     { name: `${name}-setup`, testMatch: /auth\.ui\.setup\.ts/, use: { ...devices[device] } },
     {
       name,
-      testMatch: /.*\.spec\.ts/,
+      testMatch: /\.spec\.ts$/,
       dependencies: [`${name}-setup`],
       use: { ...devices[device], storageState: storageStatePath(name) },
     },
