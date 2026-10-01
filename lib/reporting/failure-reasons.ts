@@ -1,7 +1,7 @@
 import { FailureDetail, FailureKey } from '@shared/types';
 
 // Using SCREAMING_SNAKE_CASE for a global constant
-export const API_FAILURE_REASONS: Record<FailureKey, FailureDetail> = {
+export const FAILURE_REASONS: Record<FailureKey, FailureDetail> = {
   400: { category: 'Functional', severity: 'P2', message: 'Bad request — check payload structure' },
   401: {
     category: 'Security',
