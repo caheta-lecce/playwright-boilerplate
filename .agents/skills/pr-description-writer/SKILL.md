@@ -1,12 +1,12 @@
 ---
 name: pr-description-writer
-description: Write a short PR description for the changes on the current branch, ready to paste into GitHub or pass to gh pr create --body. Flags stray diffs and suggests a branch split when a diff bundles multiple unrelated changes. Use when the user asks to draft/write a PR description or open a PR with no more specific instructions.
+description: Write a short PR description for the changes on the current branch, ready to paste into GitHub, then offer to publish it — pushing the branch and creating the PR (or updating an existing PR's body) with gh once the user agrees. Flags stray diffs and suggests a branch split when a diff bundles multiple unrelated changes. Use when the user asks to draft/write a PR description or open a PR with no more specific instructions.
 ---
 
 # Write a PR description
 
 Use this workflow to draft a short PR description for the changes on the current branch, ready
-to paste into GitHub or pass to `gh pr create --body`.
+to paste into GitHub, and to publish it with `gh` once the developer agrees.
 
 ## When this applies
 
@@ -112,9 +112,25 @@ with no more specific instructions than that.
 
 ## Output
 
-Output the description as chat text (don't write it to a file) unless the developer has a GitHub
-CLI available and asks to actually open the PR — in that case, check status/diff/log, then open
-the PR with the description as its body.
+8. **Show it ready to copy.** Output the description as chat text inside a `~~~markdown` fence
+   (tildes, so backticks inside the description don't break the block). Don't write it to a file
+   in the repository.
+9. **Offer to publish.** End by asking whether to publish it to GitHub. Only publish on an
+   explicit yes for this branch; approval for one PR does not carry over to the next. On a yes:
+   - Check `gh auth status`. If the GitHub CLI is missing or not authenticated, stop and say so.
+   - Push the branch if it has no upstream or unpushed commits: `git push -u origin <branch>`.
+     Never push to the base branch and never force-push.
+   - Write the body to a temporary file outside the repository and pass it with `--body-file`,
+     so the shell doesn't mangle backticks or quotes.
+   - If the branch already has an open PR (`gh pr view --json number,url,state`), update it with
+     `gh pr edit --body-file <file>`. Otherwise run
+     `gh pr create --base <base> --title "<title>" --body-file <file>`, with a Conventional
+     Commits title (`feat:`, `fix:`, `chore:` …) that names the branch's main change.
+   - Append any attribution line your own agent instructions require for pull requests.
+   - Report the PR URL.
+
+   If a tool permission check blocks the push or `gh` call, don't retry it another way. Give the
+   developer the exact commands to run themselves.
 
 ## Repository-specific notes
 
