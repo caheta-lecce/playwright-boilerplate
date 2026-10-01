@@ -1,5 +1,5 @@
 ---
-description: 'Write a short PR description for the changes on the current branch, ready to paste into GitHub or pass to gh pr create --body. Flags stray diffs and suggests a branch split when a diff bundles multiple unrelated changes. Use when the user asks to draft/write a PR description or open a PR with no more specific instructions.'
+description: "Write a short PR description for the changes on the current branch, ready to paste into GitHub, then offer to publish it — pushing the branch and creating the PR (or updating an existing PR's body) with gh once the user agrees. Flags stray diffs and suggests a branch split when a diff bundles multiple unrelated changes. Use when the user asks to draft/write a PR description or open a PR with no more specific instructions."
 mode: agent
 ---
 
