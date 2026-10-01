@@ -52,7 +52,8 @@ project's own conventions.
 
 - `lib/fixtures/`: shared fixture modules composed with `mergeTests()`.
 - `lib/auth/`: storage-state paths and setup helpers.
-- `lib/api/`: HTTP constants and failure classifications.
+- `lib/api/`: HTTP constants.
+- `lib/reporting/`: failure classifications (`FAILURE_REASONS`) and their types.
 - `src/config/schemas/`: Zod-validated environment and user configuration.
 - `src/config/environments/`: parsed runtime configuration.
 - `src/pages/<domain>/`: page objects.

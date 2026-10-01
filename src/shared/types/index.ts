@@ -1,1 +1,1 @@
-export type { HttpMethod, HttpStatusCode, FailureKey, FailureDetail } from './api-types';
+export type { HttpMethod, HttpStatusCode } from './api-types';
