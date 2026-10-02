@@ -6,10 +6,13 @@ data and integrations out of the template. Use dummy values and environment conf
 ## Constitution
 
 Quick-reference floor for every change; the sections below hold the detail. Rows marked with a
-hook id are also enforced by the Claude Code PreToolUse hook (`.claude/scripts/guideline-rules.mjs`,
-also run by `review-branch`). The hook only covers rules checkable with near-zero false positives,
-so an unmarked row is still binding. When adopting the template, extend these tables with the
-project's own conventions.
+hook id are enforced by the shared rule table in `scripts/guideline-rules.mjs`.
+`npm run guidelines:check` checks all tracked files in CI; the Husky pre-commit hook checks
+staged index content. Claude Code also checks proposed writes through its PreToolUse hook, and
+`review-branch` uses the same rules. Enforcement applies to every contributor, regardless of
+editor or assistant. Only rules checkable with near-zero false positives are automated, so an
+unmarked row is still binding. When adopting the template, extend these tables with the project's
+own conventions.
 
 ### MUST
 

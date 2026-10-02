@@ -22,7 +22,8 @@
     "format:check": "prettier --check .",
     "prepare": "husky",
     "ai:skills:sync": "node scripts/sync-ai-skills.mjs",
-    "ai:skills:check": "node scripts/sync-ai-skills.mjs --check"
+    "ai:skills:check": "node scripts/sync-ai-skills.mjs --check",
+    "guidelines:check": "node scripts/check-guidelines.mjs"
   },
   "lint-staged": {
     "*.{ts,js,mjs}": [

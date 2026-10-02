@@ -109,7 +109,7 @@ guideline-enforcement hook uses, in scan mode over every changed file's current 
 
 ```bash
 node --input-type=module -e "
-  const { RULES } = await import('./.claude/scripts/guideline-rules.mjs');
+  const { RULES } = await import('./scripts/guideline-rules.mjs');
   const fs = await import('node:fs');
   const changed = process.argv[1].split('\n').filter(Boolean);
   for (const relPath of changed) {
