@@ -14,7 +14,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { RULES } from './guideline-rules.mjs';
+import { RULES } from '../../scripts/guideline-rules.mjs';
 
 // Applies one old_string -> new_string replacement the way Edit/MultiEdit would.
 function applyReplacement(content, oldString, newString, replaceAll) {

@@ -2,7 +2,8 @@
 // docs/ai/repository-guidelines.md (its Constitution section lists which
 // rule id backs each entry) and .agents/skills/pom-reviewer/SKILL.md.
 //
-// Used by two consumers:
+// Tool-neutral enforcement shared by every contributor. Consumers:
+//   - scripts/check-guidelines.mjs (staged files in pre-commit, all tracked files in CI)
 //   - .claude/scripts/enforce-guidelines.mjs (PreToolUse hook: checks content
 //     about to be written)
 //   - .agents/skills/review-branch/SKILL.md (scan mode: checks a whole changed
@@ -49,6 +50,19 @@ function codeLines(content) {
   return content.split('\n').filter((line) => !isCommentLine(line));
 }
 
+// Check each import separately to avoid backtracking across unrelated statements.
+function importsPlaywrightTest(content) {
+  return codeLines(content)
+    .join('\n')
+    .split(';')
+    .map((statement) => statement.trim())
+    .some(
+      (statement) =>
+        /^import\s+(?!type\b)/.test(statement) &&
+        /\bfrom\s+['"]@playwright\/test['"]/.test(statement)
+    );
+}
+
 function hardcodedApiPath(content) {
   return codeLines(content).some((line) => /['"`]\/api\/v\d+\//.test(line));
 }
@@ -87,10 +101,7 @@ export const RULES = [
     id: 'no-playwright-test-in-spec',
     pathTest: (relPath) => TEST_FILE.test(relPath),
     // Joined so multi-line `import {\n  test,\n} from ...` is still caught.
-    contentTest: (content) =>
-      /(^|\n)\s*import\s+(?!type\b)[^;]*?from\s+['"]@playwright\/test['"]/.test(
-        codeLines(content).join('\n')
-      ),
+    contentTest: importsPlaywrightTest,
     message:
       'Specs and setup files import `test`/`expect` from @fixtures/base, never from ' +
       '@playwright/test. Type-only imports (`import type { Page }`) are fine ' +
