@@ -1,5 +1,6 @@
 import { test, expect } from '@fixtures/base';
 import { exampleUser } from '@config/environments';
+import { exampleData } from '@data/example.data';
 
 test('restores the saved session', async ({ examplePage, scanAxe }) => {
   await examplePage.do.open();
@@ -19,8 +20,8 @@ test.describe('sign-in validation', () => {
 
   test('rejects an empty display name', async ({ examplePage, scanAxe }) => {
     await examplePage.do.open();
-    await examplePage.do.signIn('');
-    await expect(examplePage.on.error).toHaveText('Enter a display name.');
+    await examplePage.do.signIn(exampleData.emptyDisplayName);
+    await expect(examplePage.on.error).toHaveText(exampleData.emptyDisplayNameError);
     await expect(examplePage.on.nameValidation).toBeVisible();
     await scanAxe('validation');
   });

@@ -33,6 +33,10 @@ what changed plus enough surrounding context to judge it, not the whole tree.
      directly instead of going through a page object action. A locator from `.on` may appear in a
      spec only as the target of an `expect(...)`. A raw locator with no page object equivalent yet
      is a missing-locator finding, not a pass.
+   - Flag any locator built inside a spec, including one chained off a page object locator
+     (`examplePage.on.table.getByText(...)`, `examplePage.on.table.locator('tbody tr')`). The fix
+     is a named locator in `<Name>Locators.ts`, used in the spec only inside `expect(...)` or
+     passed to an action (hook: `no-inline-locator-in-spec`).
 
 2. **Locator strategy.** Prefer accessible locators (`getByRole` > `getByLabel` >
    `getByPlaceholder` > `getByText` > `getByTestId`) over brittle CSS/XPath (`.some-class`, `#id`,
@@ -53,8 +57,12 @@ what changed plus enough surrounding context to judge it, not the whole tree.
    (`test.use({ storageState: { cookies: [], origins: [] } })`).
 
 6. **Test data and configuration.** Users, URLs and settings come from `src/config/` (validated by
-   the Zod schemas in `src/config/schemas/`). Flag credentials, URLs or user data typed literally in
-   specs or page objects.
+   the Zod schemas in `src/config/schemas/`). Inputs and expected values (emails, codes, IDs,
+   names, UI copy) live in `src/data/<domain>.data.ts` and are imported through `@data/*`. Flag
+   credentials, URLs, user data or test data declared in specs (module-level `const`s or literals
+   inlined in steps). Email literals and module-level string constants are also caught by the
+   `no-email-literal-in-spec` / `no-string-constant-in-spec` hooks; everything else relies on this
+   review.
 
 7. **API coverage additions, if present.** When a change touches `lib/api/`, `src/models/` or
    `src/shared/types/api-types.ts`, check it against the "API coverage" section of the guidelines.

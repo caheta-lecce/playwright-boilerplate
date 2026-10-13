@@ -91,6 +91,23 @@ with no more specific instructions than that.
    Skip lockfiles and generated/report output the same way step 2 does when gathering the
    diff; everything else that changed gets a line, even a one-liner.
 
+   Add `## Notes for the reviewer` after the Test plan when the reviewer needs context the diff
+   alone doesn't give. Include only the bullets that apply, one line each:
+
+   ```markdown
+   ## Notes for the reviewer
+
+   - **Where to start:** <the file or function that holds the core of the change>
+   - **Intended behavior changes:** <before → after vs the base branch; what deliberately stays the same>
+   - **Choice to validate:** <a design decision the author wants a second opinion on, and where to change it>
+   - **Tests:** <what the tests cover and what they don't (e.g. synthetic data, not wired into CI)>
+   - **Out of scope:** <known related gaps left for a follow-up>
+   - **Evidence:** <screenshots/runs attached, and any still pending>
+   ```
+
+   Skip the section for small, self-explanatory PRs. Never list evidence that doesn't exist yet as
+   attached — mark it pending.
+
    Add `## Suggested branch split` (see above) only when the diff bundles multiple independent
    changes:
 

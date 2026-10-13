@@ -56,6 +56,7 @@ accessibility scan for each UI state.
 | `npm run test:headed`                            | Run tests with a visible browser           |
 | `npm run test:ui`                                | Open Playwright UI mode                    |
 | `npm run test:list`                              | List tests without running them            |
+| `npm run test:unit`                              | Run the `node:test` unit tests             |
 | `npm run report`                                 | Open the last HTML report                  |
 | `npm run type:check`                             | Type-check with `tsc`                      |
 | `npm run lint`                                   | Lint with ESLint                           |
@@ -73,6 +74,7 @@ accessibility scan for each UI state.
 │   ├── config/
 │   │   ├── environments/   # Parsed runtime configuration
 │   │   └── schemas/        # Zod schemas for environment and users
+│   ├── data/               # Test data: <domain>.data.ts (inputs and expected values)
 │   ├── pages/<domain>/     # Page objects: <Name>Locators, <Name>Actions, <Name>Page
 │   ├── shared/types/       # Shared TypeScript types
 │   └── tests/
@@ -83,7 +85,7 @@ accessibility scan for each UI state.
 └── playwright.config.ts
 ```
 
-Import paths use aliases: `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*` and `@shared/*`.
+Import paths use aliases: `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*`, `@shared/*` and `@data/*`.
 
 ## How a test looks
 

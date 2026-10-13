@@ -23,6 +23,7 @@ jobs:
       - run: npm run type:check
       - run: npm run lint
       - run: npm run guidelines:check
+      - run: npm run test:unit
       - run: npm run format:check
       - run: npm run ai:skills:check
 

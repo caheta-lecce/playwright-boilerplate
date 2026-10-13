@@ -11,23 +11,27 @@ hook id are enforced by the shared rule table in `scripts/guideline-rules.mjs`.
 staged index content. Claude Code also checks proposed writes through its PreToolUse hook, and
 `review-branch` uses the same rules. Enforcement applies to every contributor, regardless of
 editor or assistant. Only rules checkable with near-zero false positives are automated, so an
-unmarked row is still binding. When adopting the template, extend these tables with the project's
-own conventions.
+unmarked row is still binding. Specs that already broke a rule when it was introduced are listed in
+`KNOWN_VIOLATIONS` there: that list only shrinks, and fixing one of those specs means removing it
+from the list. When adopting the template, extend these tables with the project's own conventions.
 
 ### MUST
 
 <!-- prettier-ignore -->
 | Rule | Requirement |
 | --- | --- |
-| **Page objects** | Specs interact with the app only through `<Name>Page` → `Actions` / `Locators`; no raw `page.click()` / `page.locator()` in specs. |
+| **Page objects** | Specs interact with the app only through `<Name>Page` → `Actions` / `Locators`; no raw `page.click()` / `page.locator()` in specs, and no locator built in a spec at all, not even chained off a page object locator (`examplePage.on.table.getByText(...)`): add a named locator to `<Name>Locators.ts` and use it only inside `expect(...)` or pass it to an action. Hook: `no-inline-locator-in-spec`. |
 | **Fixtures** | Specs and setup files import `test` / `expect` from `@fixtures/base`, never from `@playwright/test`; type-only imports are fine. Hook: `no-playwright-test-in-spec`. |
 | **Path aliases** | Imports outside the current folder use the `tsconfig.json` aliases (`@lib`, `@fixtures`, `@pages`, `@config`, `@shared`), including in `playwright.config.ts`; relative imports are only for same-folder siblings (`./x`). Lint: `no-restricted-imports`. |
 | **Endpoints** | API paths live in `lib/api/endpoints/<domain>.ts` with a shared `BASE`. Hook: `no-hardcoded-api-path`. |
 | **Constants** | HTTP methods and statuses come from `lib/api/api-constants.ts`; URLs and credentials from validated environment configuration. |
 | **Schemas** | API responses are validated with Zod schemas under `src/models/<domain>/`, faithful to the contract and documented with endpoint and example. Hook: `schema-missing-jsdoc`. |
+| **Test data** | Specs declare no test data: inputs and expected values (emails, codes, IDs, names, UI copy) live in `src/data/<domain>.data.ts` and are imported through `@data/*`. Users, URLs and settings come from `src/config/`. Hooks: `no-email-literal-in-spec` (email addresses), `no-string-constant-in-spec` (module-level string constants); the rest is checked in review. |
+| **Reuse first** | Reuse existing fixtures, page objects, helpers, constants, and test data before adding new ones. A data value already present in a `<domain>.data.ts` is reused, not copied under a new key; when a second spec needs it, rename its key to a neutral, spec-agnostic name and point both specs at it. |
 | **Auth reuse** | Specs reuse the storage state saved by the setup project; only login specs log in inline. |
 | **Accessibility** | Call `scanAxe(label)` after reaching each meaningful UI state. |
-| **Verification** | Changed code passes `npm run type:check`, `npm run lint`, and `npm run format:check`, and affected specs are run before the work is called done. |
+| **Close review gaps** | When a review (human or AI) flags a violation that the rules or hooks let through, the same change also closes the gap: tighten the matching Constitution row or section, or add a new one, and add a rule to `scripts/guideline-rules.mjs` (with a case in `unit-tests/guidelines/`) when it can be checked mechanically with near-zero false positives (existing offenders go in `KNOWN_VIOLATIONS`). If a rule only states the requirement, the next review will just flag the same thing again. |
+| **Verification** | Changed code passes `npm run type:check`, `npm run lint`, `npm run format:check`, and `npm run test:unit`, and affected specs are run before the work is called done. |
 
 ### SHOULD
 
@@ -38,6 +42,7 @@ own conventions.
 | **Direct navigation** | Navigate straight to the page under test instead of clicking through the UI to reach it. |
 | **Steps** | Group spec flows in `test.step()` so reports read as a sequence of user actions. |
 | **Why-comments** | Keep comments that explain a workaround, gotcha, or non-obvious decision. |
+| **Unit tests** | Cover pure helper and report logic (parsers, classifiers, report builders, the guideline rules) with a `*.test.mjs` in `unit-tests/<area>/`, using `node:test` + `node:assert/strict`. A script that runs `main()` on import keeps its testable logic in a separate module. `npm run test:unit` runs them locally and in CI. |
 
 ### WON'T
 
@@ -47,6 +52,7 @@ own conventions.
 | **No hard waits** | Never `waitForTimeout()`; wait on a condition (web-first assertion, `waitForResponse`, `toPass`). Hook: `no-hard-wait`. |
 | **No XPath** | Never XPath selectors in pages or specs. Hook: `no-xpath`. |
 | **No focused tests** | Never commit `test.only` / `describe.only`. Hook: `no-focused-test`. |
+| **No unexplained soft assertions** | `expect.soft` is allowed only with a `// Soft: <reason>` comment right above saying why the test must go on if it fails. Otherwise it's a hard `expect`. Hook: `no-unexplained-soft-assertion`. |
 | **No fixtures in specs** | Never `test.extend` inside a spec; fixtures live in `lib/fixtures/`. Hook: `no-fixture-in-spec`. |
 | **No secrets or client data** | Never commit credentials, auth artifacts, project URLs, or customer data. |
 | **No loosened contracts** | Never loosen a schema or expected status to make a test green; record the discrepancy and link its issue. |
@@ -59,14 +65,18 @@ own conventions.
 - `lib/reporting/`: failure classifications (`FAILURE_REASONS`) and their types.
 - `src/config/schemas/`: Zod-validated environment and user configuration.
 - `src/config/environments/`: parsed runtime configuration.
+- `src/data/`: test data, one `<domain>.data.ts` per domain.
 - `src/pages/<domain>/`: page objects.
 - `src/tests/setup/`: browser-specific authentication setup.
 - `src/tests/ui/<domain>/`: UI specifications.
+- `unit-tests/<area>/`: `node:test` unit tests for pure logic (`npm run test:unit`).
 
 ## Page objects and fixtures
 
 Use `<Name>Locators.ts` for locator declarations, `<Name>Actions.ts` for interactions, and
-`<Name>Page.ts` to compose both. Specs assert through the page object. Prefer accessible roles
+`<Name>Page.ts` to compose both. Define every selector in `Locators.ts`, including selectors
+derived from another locator with `.locator()` or `getByRole()`; `Actions.ts` consumes those named
+locators instead of defining additional selectors. Specs assert through the page object. Prefer accessible roles
 and labels. Include success, error and validation locators for forms; include loading and empty
 states when the application has them. The synchronous local demo has no loading state.
 
@@ -97,6 +107,6 @@ Use `scanAxe(label)` from the shared fixture after reaching each meaningful UI s
 fails on violations and attaches full axe results. A report-only exception needs an explicit reason.
 Automated checks do not replace manual accessibility testing.
 
-Before submitting changes, run type checking, lint, formatting and relevant browser tests. Never
+Before submitting changes, run type checking, lint, formatting, unit tests and relevant browser tests. Never
 add fixture logic or raw UI interactions to specs merely to make a test pass. Search both symbolic
 and raw values before renaming enums or data constants.

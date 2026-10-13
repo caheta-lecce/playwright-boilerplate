@@ -15,7 +15,8 @@
       "@fixtures/*": ["./lib/fixtures/*"],
       "@pages/*": ["./src/pages/*"],
       "@config/*": ["./src/config/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["./src/shared/*"],
+      "@data/*": ["./src/data/*"]
     }
   },
   "include": ["playwright.config.ts", "lib/**/*.ts", "src/**/*.ts"]
