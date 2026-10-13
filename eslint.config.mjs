@@ -32,7 +32,8 @@ export default defineConfig(
           patterns: [
             {
               regex: String.raw`^\.\./|^\./(src|lib)/`,
-              message: 'Use a tsconfig path alias (@lib, @fixtures, @pages, @config, @shared).',
+              message:
+                'Use a tsconfig path alias (@lib, @fixtures, @pages, @config, @shared, @data).',
             },
           ],
         },

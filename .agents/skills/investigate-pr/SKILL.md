@@ -48,7 +48,14 @@ For this repository, follow `docs/ai/repository-guidelines.md`. Pay particular a
 - Read [`references/review-lens.md`](references/review-lens.md) when the PR is broad, risky, failing, or requires more than a simple summary.
 - For accessibility specs, flag as a blocker: a new UI state reached without a `scanAxe` call, `a11yFailOnViolation: false` without a documented reason, or caught/ignored errors that could let the overall test pass.
 - Flag specs that inline `page.getByRole(...)`/`page.locator(...)` interactions instead of calling a page object action (`<page>.do.*`): specs should contain only page object action calls and assertions. A locator (`<page>.on.*`) should only ever appear inside an `expect(...)` in a spec. This applies even when no page object locator exists yet for that element — that's a missing-locator finding (add it), not something to skip past because there's nothing to "reuse."
-- Flag users, URLs, credentials or settings typed literally in a spec instead of coming from `src/config/`. Also check hardcoded assertion strings for casing/formatting typos against the real UI — `toContainText` is case-sensitive by default, so a miscased literal silently breaks the check's intent.
+- `expect.soft` in a spec the PR adds or changes is accepted only with a comment right above giving the reason (`// Soft: …`). Any other soft assertion is a blocker. Before flagging one, read the lines above it: a soft with its reason written there is not a finding.
+- Flag users, URLs, credentials or settings typed literally in a spec instead of coming from `src/config/`, and test data (inputs, expected values) declared in a spec instead of `src/data/<domain>.data.ts`. Also check hardcoded assertion strings for casing/formatting typos against the real UI — `toContainText` is case-sensitive by default, so a miscased literal silently breaks the check's intent.
+- If the PR body has a `Notes for the reviewer` section, treat each bullet as a claim to verify, not as evidence:
+  - **Intended behavior changes:** confirm them against the diff and tests, and flag any behavior change the diff makes that the notes don't list.
+  - **Choice to validate:** answer it explicitly in the response (agree, or propose the alternative).
+  - **Out of scope:** accept a declared gap as a follow-up rather than a blocker, unless it breaks the stated purpose of the PR.
+  - **Evidence pending:** if the verdict depends on that evidence, use `UNDETERMINED` until it is attached.
+- Review only what the PR changes. Read other code and specs to understand the change, but never turn an issue in code the PR doesn't touch into a request to the author: no follow-up tickets, no "report it to another team". For a docs- or skills-only PR, don't audit existing specs against the new rules. If such an issue is worth knowing, mention it once in an "Out of scope" line, never in the author message. The exception is when the PR's own change affects that code, e.g. a shared helper or page object whose new behavior can break other specs.
 - Put at most one or two blockers in the main answer; group lesser findings briefly.
 - For a re-check, state what changed since the previous analysis and whether the previous blocker is resolved.
 - Do not edit code, submit reviews, resolve threads, or post comments unless the user separately authorizes that action.
@@ -99,4 +106,4 @@ Keep the verdict and immediate action visible without scrolling. Default to this
 - <One to three concise findings with file/line evidence or exact verification steps.>
 ```
 
-Lead with blockers. Mention files only when they demonstrate the purpose, a blocker, or an important risk. Avoid raw command logs, large diffs, long file inventories, and unexplained implementation jargon.
+Lead with blockers. Every finding, question, suggestion and out-of-scope note names the file it is about, as a path with the line or test name (e.g. `src/tests/ui/example/example.spec.ts:24`), including in the author message: a case id or UI label alone doesn't tell the author where to look. Otherwise, mention files only when they demonstrate the purpose, a blocker, or an important risk. Avoid raw command logs, large diffs, long file inventories, and unexplained implementation jargon.

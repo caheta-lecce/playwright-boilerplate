@@ -68,7 +68,58 @@ function hardcodedApiPath(content) {
 }
 
 const TEST_FILE = /(^|\/)src\/tests\/.+\.(spec|setup)\.ts$/;
+const SPEC_FILE = /(^|\/)src\/tests\/.+\.spec\.ts$/;
 const SRC_OR_LIB_TS = /(^|\/)(src|lib)\/.+\.ts$/;
+
+// Specs that already broke a rule when it was introduced. They are skipped so CI
+// stays green on main, while every other spec is held to the rule from day one.
+// This is debt to pay off, not an allowlist to grow: when one of these files is
+// fixed, remove it from its list. Never add a new entry. When adopting a new rule
+// in a project with existing specs, list the current offenders here (repo-relative
+// paths) instead of disabling the rule.
+const KNOWN_VIOLATIONS = {
+  'no-inline-locator-in-spec': new Set([]),
+  'no-email-literal-in-spec': new Set([]),
+  'no-string-constant-in-spec': new Set([]),
+};
+
+function isKnownViolation(ruleId, relPath) {
+  const normalized = relPath.replaceAll('\\', '/');
+  return [...KNOWN_VIOLATIONS[ruleId]].some((known) => normalized.endsWith(known));
+}
+
+// Building a locator in a spec, including one chained off a page object locator
+// (`examplePage.on.table.getByText(...)`, `examplePage.on.table.locator('tbody tr')`).
+// A line that starts with `.getByText(` (chain split by Prettier) is caught too.
+const INLINE_LOCATOR =
+  /\.(getBy(Role|Text|Label|Placeholder|TestId|AltText|Title)|locator|frameLocator)\(/;
+
+// A quoted string with something before an `@`: an email-like literal, valid
+// or not (`'user@@example'`). Tags (`'@smoke'`) and import aliases
+// (`'@fixtures/…'`) start with `@`, so they don't match.
+const EMAIL_LITERAL = /['"`][^'"`\s@]+@/;
+
+// A module-level `const NAME = 'literal'` in a spec: test data declared in the spec instead of a
+// `src/data/<domain>.data.ts` file. Only top-level (column 0) declarations of a plain string
+// literal, or a template literal without `${}` interpolation, are matched; locals derived inside a
+// test body are left to review.
+const MODULE_STRING_CONSTANT = /^(export\s+)?const\s+\w+\s*(:\s*string\s*)?=\s*(['"]|`[^`$]*`)/;
+
+// A soft assertion with no reason given: every `.soft(` call needs a comment mentioning "soft" on
+// its line or in the 8 lines above (the `// Soft: <reason>` convention; the reason can sit above
+// the setup lines that compute the asserted value).
+function unexplainedSoftAssertion(content) {
+  const lines = content.split('\n');
+  return lines.some((line, i) => {
+    if (!line.includes('.soft(') || isCommentLine(line)) return false;
+    const trailingComment = line.indexOf('//');
+    if (trailingComment >= 0 && /\bsoft\b/i.test(line.slice(trailingComment))) return false;
+    for (let j = i - 1; j >= 0 && j >= i - 8; j--) {
+      if (isCommentLine(lines[j]) && /\bsoft\b/i.test(lines[j])) return false;
+    }
+    return true;
+  });
+}
 
 export const RULES = [
   {
@@ -114,6 +165,46 @@ export const RULES = [
     message:
       'Specs never declare their own `test.extend` fixture — fixtures live in lib/fixtures/ and ' +
       'are imported (see docs/ai/repository-guidelines.md, Page objects and fixtures).',
+  },
+  {
+    id: 'no-inline-locator-in-spec',
+    pathTest: (relPath) =>
+      SPEC_FILE.test(relPath) && !isKnownViolation('no-inline-locator-in-spec', relPath),
+    contentTest: (content) => codeLines(content).some((line) => INLINE_LOCATOR.test(line)),
+    message:
+      'Specs never build locators, not even chained off a page object locator ' +
+      '(`examplePage.on.table.getByText(...)`). Add a named locator to `<Name>Locators.ts` and ' +
+      'use it only inside `expect(...)` or pass it to an action (see ' +
+      'docs/ai/repository-guidelines.md, Constitution / Page objects).',
+  },
+  {
+    id: 'no-email-literal-in-spec',
+    pathTest: (relPath) =>
+      SPEC_FILE.test(relPath) && !isKnownViolation('no-email-literal-in-spec', relPath),
+    contentTest: (content) => codeLines(content).some((line) => EMAIL_LITERAL.test(line)),
+    message:
+      'Test data (here an email address, valid or not) never lives in a spec. Put it in ' +
+      'src/data/<domain>.data.ts and import it through `@data/*` (see ' +
+      'docs/ai/repository-guidelines.md, Constitution / Test data).',
+  },
+  {
+    id: 'no-string-constant-in-spec',
+    pathTest: (relPath) =>
+      SPEC_FILE.test(relPath) && !isKnownViolation('no-string-constant-in-spec', relPath),
+    contentTest: (content) => content.split('\n').some((line) => MODULE_STRING_CONSTANT.test(line)),
+    message:
+      'A spec never declares test data as a module-level string constant. Put the value in ' +
+      'src/data/<domain>.data.ts (reuse an existing key first) and import it through `@data/*` ' +
+      '(see docs/ai/repository-guidelines.md, Constitution / Test data).',
+  },
+  {
+    id: 'no-unexplained-soft-assertion',
+    pathTest: (relPath) => SPEC_FILE.test(relPath),
+    contentTest: unexplainedSoftAssertion,
+    message:
+      '`expect.soft` needs its reason in a comment right above ' +
+      '(`// Soft: <why the test must go on if this fails>`). Otherwise use a hard `expect` (see ' +
+      'docs/ai/repository-guidelines.md, Constitution).',
   },
   {
     id: 'no-xpath',

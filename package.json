@@ -15,6 +15,7 @@
     "test:firefox": "playwright test --project=firefox",
     "test:webkit": "playwright test --project=webkit",
     "test:list": "playwright test --list",
+    "test:unit": "node --test \"unit-tests/**/*.test.mjs\"",
     "report": "playwright show-report",
     "lint": "eslint .",
     "type:check": "tsc --noEmit",

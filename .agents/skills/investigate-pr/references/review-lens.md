@@ -30,7 +30,7 @@ Use this reference when a PR needs deeper investigation than a simple summary. T
 - Keep users, URLs and settings in `src/config/` (validated by the Zod schemas in `src/config/schemas/`), and shared test data in a shared module rather than inside specs. Flag arrays/objects of expected values (names, codes, addresses, IDs, ...) declared as local `const`s inside a spec — that's the same inline-instead-of-shared problem as locators, just for data instead of selectors.
 - Look for selectors and waits that may be flaky across roles, locales, viewports, environments, or timing variations.
 - When a spec's assertion checks a hardcoded string/substring (e.g. `toContainText`), verify the literal's exact casing and formatting against what the real UI renders — `toContainText` is case-sensitive by default. A miscased or mistyped literal either fails against the real page or, if too loose to be meaningful, passes without actually verifying the value.
-- Flag leftover `expect.soft` / `.soft(...)` assertions: soft assertions are a development-time aid and must not remain in the final PR. Treat them as a blocker unless the author documents a deliberate, justified reason for keeping them.
+- `expect.soft` / `.soft(...)` in specs the PR adds or changes: allowed only with a `// Soft: <reason>` comment right above. Anything else is a blocker. A soft with its reason written above is not a finding (hook: `no-unexplained-soft-assertion`).
 - Spec files should contain only tests, not fixture definitions. A `test.extend<...>({...})` (or any custom fixture) declared inline in a `*.spec.ts` file is a blocker — fixtures belong in `lib/fixtures/` (or another shared fixtures module) and get imported into the spec. This applies regardless of how many specs use it yet — see the "Page objects and fixtures" section of repository-guidelines.md. A one-off case that genuinely needs fixture semantics (guaranteed teardown, DI) belongs in `lib/fixtures/` on first use, not in the spec.
 
 ## Review comments and CI
@@ -45,5 +45,7 @@ Use this reference when a PR needs deeper investigation than a simple summary. T
 - **Blocker:** must be fixed before approval.
 - **Question:** requires clarification from the author.
 - **Suggestion:** improves maintainability or readability but does not block approval.
-- **Follow-up:** acceptable after merge only when explicitly tracked.
+- **Follow-up:** acceptable after merge; name it in the review comment. Don't require the author to open a ticket for it.
 - **No issue:** mention only when it materially reduces reviewer uncertainty.
+
+Classify only what the PR changes. Issues in code the PR doesn't touch are out of scope (see "Review only what the PR changes" in `SKILL.md`).

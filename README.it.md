@@ -60,6 +60,7 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | `npm run test:headed`                            | Esegue i test con il browser visibile               |
 | `npm run test:ui`                                | Apre la UI mode di Playwright                       |
 | `npm run test:list`                              | Elenca i test senza eseguirli                       |
+| `npm run test:unit`                              | Esegue gli unit test `node:test`                    |
 | `npm run report`                                 | Apre l'ultimo report HTML                           |
 | `npm run type:check`                             | Controllo dei tipi con `tsc`                        |
 | `npm run lint`                                   | Lint con ESLint                                     |
@@ -77,6 +78,7 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 │   ├── config/
 │   │   ├── environments/   # Configurazione di runtime già validata
 │   │   └── schemas/        # Schemi Zod per ambiente e utenti
+│   ├── data/               # Dati di test: <dominio>.data.ts (input e valori attesi)
 │   ├── pages/<dominio>/    # Page object: <Nome>Locators, <Nome>Actions, <Nome>Page
 │   ├── shared/types/       # Tipi TypeScript condivisi
 │   └── tests/
@@ -87,7 +89,7 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 └── playwright.config.ts
 ```
 
-Gli import usano gli alias `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*` e `@shared/*`.
+Gli import usano gli alias `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*`, `@shared/*` e `@data/*`.
 
 ## Com'è fatto un test
 
