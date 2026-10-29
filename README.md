@@ -20,6 +20,8 @@ external account, database or server.
   startup, so a missing or malformed value fails fast with a clear message.
 - **Accessibility checks**: a `scanAxe()` fixture runs [axe-core](https://github.com/dequelabs/axe-core)
   against WCAG 2.1 A/AA and attaches the full results to the report.
+- **ZAP passive scan**: journeys under `src/tests/security/zap/` run through an OWASP ZAP proxy with
+  a pinned rule baseline; see [docs/zap/zap-proxy-scan.md](docs/zap/zap-proxy-scan.md).
 - **Cross-browser**: Chromium, Firefox and WebKit by default.
 - **Quality tooling**: ESLint, Prettier, strict TypeScript, and a Husky pre-commit hook with
   lint-staged.
@@ -57,6 +59,7 @@ accessibility scan for each UI state.
 | `npm run test:ui`                                | Open Playwright UI mode                    |
 | `npm run test:list`                              | List tests without running them            |
 | `npm run test:unit`                              | Run the `node:test` unit tests             |
+| `npm run test:zap`                               | Run the ZAP journeys through a ZAP proxy   |
 | `npm run report`                                 | Open the last HTML report                  |
 | `npm run type:check`                             | Type-check with `tsc`                      |
 | `npm run lint`                                   | Lint with ESLint                           |

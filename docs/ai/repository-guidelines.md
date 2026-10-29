@@ -69,6 +69,8 @@ from the list. When adopting the template, extend these tables with the project'
 - `src/pages/<domain>/`: page objects.
 - `src/tests/setup/`: browser-specific authentication setup.
 - `src/tests/ui/<domain>/`: UI specifications.
+- `src/tests/security/zap/`: ZAP passive-scan journeys, run only by `playwright.zap.config.ts` (`npm run test:zap`, see `docs/zap/zap-proxy-scan.md`); the default config ignores them.
+- `docs/zap/`: pinned ZAP baseline (`zap-baseline.json`), rule list and scan guide.
 - `unit-tests/<area>/`: `node:test` unit tests for pure logic (`npm run test:unit`).
 
 ## Page objects and fixtures

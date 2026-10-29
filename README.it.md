@@ -22,6 +22,9 @@ account esterni, database o server.
 - **Controlli di accessibilità**: la fixture `scanAxe()` esegue
   [axe-core](https://github.com/dequelabs/axe-core) secondo WCAG 2.1 A/AA e allega i risultati
   completi al report.
+- **Scansione passiva ZAP**: i journey in `src/tests/security/zap/` passano da un proxy OWASP ZAP
+  con una baseline di regole fissata; vedi [docs/zap/zap-proxy-scan.md](docs/zap/zap-proxy-scan.md)
+  (in inglese).
 - **Multi-browser**: Chromium, Firefox e WebKit di default.
 - **Strumenti di qualità**: ESLint, Prettier, TypeScript in modalità strict e un hook pre-commit
   Husky con lint-staged.
@@ -61,6 +64,7 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | `npm run test:ui`                                | Apre la UI mode di Playwright                       |
 | `npm run test:list`                              | Elenca i test senza eseguirli                       |
 | `npm run test:unit`                              | Esegue gli unit test `node:test`                    |
+| `npm run test:zap`                               | Esegue i journey ZAP tramite un proxy ZAP           |
 | `npm run report`                                 | Apre l'ultimo report HTML                           |
 | `npm run type:check`                             | Controllo dei tipi con `tsc`                        |
 | `npm run lint`                                   | Lint con ESLint                                     |
