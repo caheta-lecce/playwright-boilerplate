@@ -33,6 +33,8 @@ external account, database or server.
 
 - Node.js 22 or newer
 - npm
+- Only for the [ZAP passive scan](#zap-passive-scan): OWASP ZAP 2.17.0 with the add-on versions pinned in
+  [docs/zap/zap-baseline.json](docs/zap/zap-baseline.json)
 
 ## Quick start
 
@@ -60,7 +62,13 @@ accessibility scan for each UI state.
 | `npm run test:list`                              | List tests without running them            |
 | `npm run test:unit`                              | Run the `node:test` unit tests             |
 | `npm run test:zap`                               | Run the ZAP journeys through a ZAP proxy   |
+| `npm run test:zap:headed`                        | Same, with a visible browser               |
+| `npm run test:zap:no-proxy`                      | Run the ZAP journeys with no proxy         |
+| `npm run zap:baseline`                           | Check ZAP against the pinned baseline      |
+| `npm run zap:reset`                              | Clear the running ZAP session              |
 | `npm run report`                                 | Open the last HTML report                  |
+| `npm run guidelines:check`                       | Check the mechanical repository guidelines |
+| `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries  |
 | `npm run type:check`                             | Type-check with `tsc`                      |
 | `npm run lint`                                   | Lint with ESLint                           |
 | `npm run format` / `format:check`                | Format, or check formatting, with Prettier |
@@ -72,7 +80,8 @@ accessibility scan for each UI state.
 ├── lib/
 │   ├── api/            # HTTP status constants and failure classifications
 │   ├── auth/           # Storage-state paths and setup helpers
-│   └── fixtures/       # Fixtures composed with mergeTests() (page objects, accessibility)
+│   ├── fixtures/       # Fixtures composed with mergeTests() (page objects, accessibility)
+│   └── reporting/      # Failure-reason types and labels for reports
 ├── src/
 │   ├── config/
 │   │   ├── environments/   # Parsed runtime configuration
@@ -81,11 +90,19 @@ accessibility scan for each UI state.
 │   ├── pages/<domain>/     # Page objects: <Name>Locators, <Name>Actions, <Name>Page
 │   ├── shared/types/       # Shared TypeScript types
 │   └── tests/
+│       ├── security/zap/   # ZAP passive-scan journeys
 │       ├── setup/          # Per-browser authentication setup
 │       └── ui/<domain>/    # UI specs
-├── scripts/demo-server.mjs # Local demo app used by the examples
-├── docs/ai/                # Shared repository guidelines
-└── playwright.config.ts
+├── scripts/
+│   ├── demo-server.mjs             # Local demo app used by the examples
+│   ├── configure-zap-baseline.mjs  # Checks and applies the pinned ZAP baseline
+│   └── reset-zap-session.mjs       # Clears the ZAP session before a run
+├── docs/
+│   ├── ai/                         # Shared repository guidelines
+│   └── zap/                        # ZAP scan guide, rule list and baseline lock file
+├── unit-tests/             # node:test unit tests for the guideline rules
+├── playwright.config.ts
+└── playwright.zap.config.ts
 ```
 
 Import paths use aliases: `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*`, `@shared/*` and `@data/*`.
@@ -130,9 +147,31 @@ page object in `src/pages/example/`.
 ## Continuous integration
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pushes to `main`, on pull requests
-and on demand. It type-checks, lints, checks formatting, checks that the AI skill entry points are
+and on demand. It type-checks, lints, checks the repository guidelines, runs the unit tests, checks formatting, checks that the AI skill entry points are
 in sync, runs all browser tests, and uploads the HTML report as an artifact. It needs no secrets or
 external services.
+
+## ZAP passive scan
+
+The journeys in `src/tests/security/zap/` can run through an [OWASP ZAP](https://www.zaproxy.org)
+proxy, so ZAP passively scans the traffic they generate. They have their own config
+(`playwright.zap.config.ts`) and never run as part of `npm test`. Only run them against an
+application you are allowed to test.
+
+1. Start ZAP 2.17.0 as a daemon on `127.0.0.1:8080`, with the add-ons pinned in
+   [docs/zap/zap-baseline.json](docs/zap/zap-baseline.json) installed.
+2. Run `npm run test:zap`. It checks ZAP against the baseline, resets the ZAP session, then runs
+   the journeys through the proxy.
+3. Open the Playwright report in `playwright-report/zap`.
+
+To check that the journeys work without a ZAP daemon, run `npm run test:zap:no-proxy` (or set
+`ZAP_PROXY=off`).
+
+Optional variables in `.env`: `ZAP_PROXY_URL` (default `http://127.0.0.1:8080`), `ZAP_PROXY`
+(`on` or `off`) and `ZAP_KEY` (the daemon's API key, if it has one).
+
+Setup, comparable runs and troubleshooting are in [docs/zap/zap-proxy-scan.md](docs/zap/zap-proxy-scan.md).
+The rules in the baseline are listed in [docs/zap/passive-scan-rules.md](docs/zap/passive-scan-rules.md).
 
 ## AI assistant skills
 
