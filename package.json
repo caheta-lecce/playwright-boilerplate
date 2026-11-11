@@ -33,7 +33,8 @@
     "prepare": "husky",
     "ai:skills:sync": "node scripts/sync-ai-skills.mjs",
     "ai:skills:check": "node scripts/sync-ai-skills.mjs --check",
-    "guidelines:check": "node scripts/check-guidelines.mjs"
+    "guidelines:check": "node scripts/check-guidelines.mjs",
+    "playwright:image:check": "node scripts/check-playwright-image.mjs"
   },
   "lint-staged": {
     "*.{ts,js,mjs}": [
