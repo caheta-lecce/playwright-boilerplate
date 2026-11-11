@@ -27,9 +27,30 @@ jobs:
       - run: npm run format:check
       - run: npm run ai:skills:check
 
+  # Resolve the exact @playwright/test version from the lockfile so the container image tag
+  # below always matches the installed version (Dependabot bumps included). No npm install needed.
+  playwright-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: version
+        run: >-
+          node -p "'version=' + require('./package-lock.json').packages['node_modules/@playwright/test'].version"
+          >> "$GITHUB_OUTPUT"
+
+  # Runs in the official Playwright image (browsers and system deps preinstalled): the apt-based
+  # `playwright install --with-deps` step on the bare runner failed on mirror DNS errors.
   test:
+    needs: playwright-version
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-noble
+    env:
+      HOME: /root # needed by Firefox in this image on GitHub Actions
     strategy:
       fail-fast: false
       matrix:
@@ -41,16 +62,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
-      - if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps ${{ matrix.browser }}
-      - if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps ${{ matrix.browser }}
       - run: npm run test:ci -- --project=${{ matrix.browser }}
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
