@@ -26,29 +26,17 @@ jobs:
       - run: npm run test:unit
       - run: npm run format:check
       - run: npm run ai:skills:check
-
-  # Resolve the exact @playwright/test version from the lockfile so the container image tag
-  # below always matches the installed version (Dependabot bumps included). No npm install needed.
-  playwright-version:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v7
-      - id: version
-        run: >-
-          node -p "'version=' + require('./package-lock.json').packages['node_modules/@playwright/test'].version"
-          >> "$GITHUB_OUTPUT"
+      - run: npm run playwright:image:check
 
   # Runs in the official Playwright image (browsers and system deps preinstalled): the apt-based
   # `playwright install --with-deps` step on the bare runner failed on mirror DNS errors.
+  # The tag is pinned on purpose and must equal the @playwright/test version in package.json
+  # (enforced by `npm run playwright:image:check`). Test a new version first, then bump both in one PR.
   test:
-    needs: playwright-version
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
-      image: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-noble
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     env:
       HOME: /root # needed by Firefox in this image on GitHub Actions
     strategy:

@@ -9,6 +9,10 @@ updates:
       dev-dependencies:
         dependency-type: development
         update-types: [minor, patch]
+        # @playwright/test gets its own PR: the container image tag in ci.yml is pinned and must be
+        # bumped in that same PR, after the new version was tested. Until then the PR fails
+        # `playwright:image:check` on purpose.
+        exclude-patterns: ['@playwright/test']
     ignore:
       # The repository targets Node 22 (see .nvmrc and engines), so @types/node stays on 22.x.
       - dependency-name: '@types/node'
