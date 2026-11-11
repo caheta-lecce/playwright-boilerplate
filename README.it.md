@@ -56,6 +56,9 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | Comando                                          | Cosa fa                                                          |
 | ------------------------------------------------ | ---------------------------------------------------------------- |
 | `npm test`                                       | Esegue tutti i test su tutti i browser, esclusi i `@destructive` |
+| `npm run test:ci`                                | Come `npm test` più `--forbid-only` (come in CI)                 |
+| `npm run test:changed` / `test:changed:main`     | Esegue solo gli spec modificati rispetto a `HEAD` / `main`       |
+| `npm run test:debug`                             | Esegue con l'inspector di Playwright (`--debug`)                 |
 | `npm run test:smoke` / `test:regression`         | Esegue solo la suite `@smoke` o `@regression`                    |
 | `npm run test:destructive`                       | Esegue solo i test `@destructive`                                |
 | `npm run test:chromium` / `:firefox` / `:webkit` | Esegue i test su un solo browser                                 |
@@ -67,7 +70,7 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | `npm run guidelines:check`                       | Verifica le linee guida controllabili in automatico              |
 | `npm run ai:skills:sync` / `ai:skills:check`     | Genera, o verifica, gli entry point delle skill AI               |
 | `npm run type:check`                             | Controllo dei tipi con `tsc`                                     |
-| `npm run lint`                                   | Lint con ESLint                                                  |
+| `npm run lint` / `lint:fix`                      | Lint con ESLint, con correzioni automatiche opzionali            |
 | `npm run format` / `format:check`                | Formatta, o verifica la formattazione, con Prettier              |
 
 ## Tag dei test
@@ -200,6 +203,10 @@ Per Claude Code, `.claude/settings.json` aggiunge anche due hook: uno blocca le 
 violano le linee guida verificabili in automatico (per esempio i selettori XPath), l'altro esegue
 lint e formattazione su ogni file TypeScript appena scritto. Impedisce inoltre all'assistente di
 leggere o modificare `.env`.
+
+## Licenza
+
+MIT, vedi [LICENSE](LICENSE).
 
 ## Convenzioni
 

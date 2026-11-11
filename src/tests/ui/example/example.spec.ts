@@ -1,6 +1,6 @@
 import { test, expect } from '@fixtures/base';
 import { exampleUser } from '@config/environments';
-import { exampleData } from '@data/example.data';
+import { buildDisplayName, exampleData } from '@data/example.data';
 
 test('restores the saved session', { tag: '@smoke' }, async ({ examplePage, scanAxe }) => {
   await examplePage.do.open();
@@ -27,6 +27,18 @@ test.describe('sign-in validation', () => {
       await expect(examplePage.on.error).toHaveText(exampleData.emptyDisplayNameError);
       await expect(examplePage.on.nameValidation).toBeVisible();
       await scanAxe('validation');
+    }
+  );
+
+  test(
+    'signs in with a generated display name',
+    { tag: '@regression' },
+    async ({ examplePage, scanAxe }) => {
+      const displayName = buildDisplayName();
+      await examplePage.do.open();
+      await examplePage.do.signIn(displayName);
+      await expect(examplePage.on.welcome).toHaveText(`Welcome, ${displayName}`);
+      await scanAxe('signed-in-generated-name');
     }
   );
 });
