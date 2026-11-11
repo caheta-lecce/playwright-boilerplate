@@ -22,9 +22,6 @@ account esterni, database o server.
 - **Controlli di accessibilità**: la fixture `scanAxe()` esegue
   [axe-core](https://github.com/dequelabs/axe-core) secondo WCAG 2.1 A/AA e allega i risultati
   completi al report.
-- **Scansione passiva ZAP**: i journey in `src/tests/security/zap/` passano da un proxy OWASP ZAP
-  con una baseline di regole fissata; vedi [docs/zap/zap-proxy-scan.md](docs/zap/zap-proxy-scan.md)
-  (in inglese).
 - **Multi-browser**: Chromium, Firefox e WebKit di default.
 - **Strumenti di qualità**: ESLint, Prettier, TypeScript in modalità strict e un hook pre-commit
   Husky con lint-staged.
@@ -38,8 +35,6 @@ account esterni, database o server.
 
 - Node.js 22 o superiore
 - npm
-- Solo per la [scansione passiva ZAP](#scansione-passiva-zap): OWASP ZAP 2.17.0 con le versioni degli
-  add-on fissate in [docs/zap/zap-baseline.json](docs/zap/zap-baseline.json)
 
 ## Avvio rapido
 
@@ -68,11 +63,6 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | `npm run test:ui`                                | Apre la UI mode di Playwright                                    |
 | `npm run test:list`                              | Elenca i test senza eseguirli                                    |
 | `npm run test:unit`                              | Esegue gli unit test `node:test`                                 |
-| `npm run test:zap`                               | Esegue i journey ZAP tramite un proxy ZAP                        |
-| `npm run test:zap:headed`                        | Come sopra, con il browser visibile                              |
-| `npm run test:zap:no-proxy`                      | Esegue i journey ZAP senza proxy                                 |
-| `npm run zap:baseline`                           | Verifica ZAP rispetto alla baseline fissata                      |
-| `npm run zap:reset`                              | Azzera la sessione ZAP in esecuzione                             |
 | `npm run report`                                 | Apre l'ultimo report HTML                                        |
 | `npm run guidelines:check`                       | Verifica le linee guida controllabili in automatico              |
 | `npm run ai:skills:sync` / `ai:skills:check`     | Genera, o verifica, gli entry point delle skill AI               |
@@ -110,20 +100,15 @@ condivisi riceve anche `'@destructive'` (`{ tag: ['@regression', '@destructive']
 │   ├── pages/<dominio>/    # Page object: <Nome>Locators, <Nome>Actions, <Nome>Page
 │   ├── shared/types/       # Tipi TypeScript condivisi
 │   └── tests/
-│       ├── security/zap/   # Journey per la scansione passiva ZAP
 │       ├── setup/          # Setup dell'autenticazione per browser
 │       └── ui/<dominio>/   # Spec UI
 ├── scripts/
 │   ├── demo-server.mjs             # Applicazione demo locale usata dagli esempi
-│   ├── run-suite.mjs               # Esegue una suite per tag senza filtrare il setup auth
-│   ├── configure-zap-baseline.mjs  # Verifica e applica la baseline ZAP fissata
-│   └── reset-zap-session.mjs       # Azzera la sessione ZAP prima di un'esecuzione
+│   └── run-suite.mjs               # Esegue una suite per tag senza filtrare il setup auth
 ├── docs/
-│   ├── ai/                         # Linee guida condivise del repository
-│   └── zap/                        # Guida ZAP, elenco regole e file di lock della baseline
+│   └── ai/                         # Linee guida condivise del repository
 ├── unit-tests/             # Unit test node:test per le regole delle linee guida
-├── playwright.config.ts
-└── playwright.zap.config.ts
+└── playwright.config.ts
 ```
 
 Gli import usano gli alias `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*`, `@shared/*` e `@data/*`.
@@ -172,29 +157,6 @@ page object in `src/pages/example/`.
 pull request e su richiesta. Controlla i tipi, esegue il lint, verifica le linee guida del repository, lancia gli unit test, verifica la formattazione, controlla
 che gli entry point delle skill AI siano sincronizzati, lancia tutti i test sui browser e carica il
 report HTML come artifact. Non richiede secret né servizi esterni.
-
-## Scansione passiva ZAP
-
-I journey in `src/tests/security/zap/` possono passare da un proxy [OWASP ZAP](https://www.zaproxy.org),
-così ZAP analizza passivamente il traffico che generano. Hanno una configurazione propria
-(`playwright.zap.config.ts`) e non vengono mai eseguiti da `npm test`. Eseguili solo su
-un'applicazione che hai il permesso di testare.
-
-1. Avvia ZAP 2.17.0 come daemon su `127.0.0.1:8080`, con gli add-on fissati in
-   [docs/zap/zap-baseline.json](docs/zap/zap-baseline.json) installati.
-2. Esegui `npm run test:zap`. Verifica ZAP rispetto alla baseline, azzera la sessione ZAP, poi
-   lancia i journey attraverso il proxy.
-3. Apri il report di Playwright in `playwright-report/zap`.
-
-Per verificare che i journey funzionino senza un daemon ZAP, esegui `npm run test:zap:no-proxy` (o
-imposta `ZAP_PROXY=off`).
-
-Variabili opzionali in `.env`: `ZAP_PROXY_URL` (default `http://127.0.0.1:8080`), `ZAP_PROXY`
-(`on` oppure `off`) e `ZAP_KEY` (la chiave API del daemon, se presente).
-
-Configurazione, esecuzioni confrontabili e risoluzione dei problemi sono in
-[docs/zap/zap-proxy-scan.md](docs/zap/zap-proxy-scan.md) (in inglese). Le regole della baseline sono
-elencate in [docs/zap/passive-scan-rules.md](docs/zap/passive-scan-rules.md) (in inglese).
 
 ## Skill per gli assistenti AI
 
