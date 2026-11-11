@@ -143,10 +143,23 @@ page object in `src/pages/example/`.
 
 ## Continuous integration
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pushes to `main`, on pull requests
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pushes to `main`, `ui-a11y` and `ui-a11y-dast`, on pull requests
 and on demand. It type-checks, lints, checks the repository guidelines, runs the unit tests, checks formatting, checks that the AI skill entry points are
 in sync, runs all browser tests, and uploads the HTML report as an artifact. It needs no secrets or
 external services.
+
+## Variants
+
+The template ships as three stacked branches; pick the one that matches what your team needs.
+
+| Branch         | What it contains                                                                           | When to choose it                               |
+| -------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| `main`         | UI tests only: page objects, fixtures, tags, guideline rules, AI skills **(you are here)** | You only need functional UI automation.         |
+| `ui-a11y`      | `main` plus axe-core accessibility scans and the `a11y-reviewer` skill                     | You also check accessibility on every UI state. |
+| `ui-a11y-dast` | `ui-a11y` plus the OWASP ZAP passive-scan suite                                            | You also want passive security scanning (DAST). |
+
+Maintenance rule: fix and change shared things on `main` only, then merge `main` into `ui-a11y`
+and `ui-a11y` into `ui-a11y-dast`, in that order.
 
 ## AI assistant skills
 

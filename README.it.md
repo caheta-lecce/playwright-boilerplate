@@ -149,10 +149,23 @@ page object in `src/pages/example/`.
 
 ## Integrazione continua
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) viene eseguito sui push su `main`, sulle
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) viene eseguito sui push su `main`, `ui-a11y` e `ui-a11y-dast`, sulle
 pull request e su richiesta. Controlla i tipi, esegue il lint, verifica le linee guida del repository, lancia gli unit test, verifica la formattazione, controlla
 che gli entry point delle skill AI siano sincronizzati, lancia tutti i test sui browser e carica il
 report HTML come artifact. Non richiede secret né servizi esterni.
+
+## Varianti
+
+Il template è distribuito come tre branch sovrapposti; scegli quello adatto alle esigenze del team.
+
+| Branch         | Cosa contiene                                                                             | Quando sceglierlo                                       |
+| -------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `main`         | Solo test UI: page object, fixture, tag, regole delle linee guida, skill AI **(sei qui)** | Servono solo test funzionali UI.                        |
+| `ui-a11y`      | `main` più le scansioni di accessibilità axe-core e la skill `a11y-reviewer`              | Vuoi verificare anche l'accessibilità di ogni stato UI. |
+| `ui-a11y-dast` | `ui-a11y` più la suite di scansione passiva OWASP ZAP                                     | Vuoi anche la scansione di sicurezza passiva (DAST).    |
+
+Regola di manutenzione: correggi e modifica le parti condivise solo su `main`, poi unisci `main` in
+`ui-a11y` e `ui-a11y` in `ui-a11y-dast`, in questo ordine.
 
 ## Skill per gli assistenti AI
 

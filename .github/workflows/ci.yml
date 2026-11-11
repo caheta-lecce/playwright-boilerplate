@@ -1,7 +1,7 @@
 name: Quality and browser tests
 on:
   push:
-    branches: [main]
+    branches: [main, ui-a11y, ui-a11y-dast]
   pull_request:
   workflow_dispatch:
 permissions:
