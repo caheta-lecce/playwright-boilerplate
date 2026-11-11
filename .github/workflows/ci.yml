@@ -26,10 +26,20 @@ jobs:
       - run: npm run test:unit
       - run: npm run format:check
       - run: npm run ai:skills:check
+      - run: npm run playwright:image:check
 
+  # Runs in the official Playwright image (browsers and system deps preinstalled): the apt-based
+  # `playwright install --with-deps` step on the bare runner failed on mirror DNS errors.
+  # The tag is pinned on purpose and must equal the @playwright/test version in package.json
+  # (enforced by `npm run playwright:image:check`). Test a new version first, then bump both in one PR.
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble
+      # Run as the runner's user, as the Playwright docs recommend: Firefox refuses to start as root
+      # with the HOME GitHub sets, and overriding HOME made the docker client warn on every step.
+      options: --user 1001
     strategy:
       fail-fast: false
       matrix:
@@ -41,16 +51,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
-      - if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps ${{ matrix.browser }}
-      - if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps ${{ matrix.browser }}
       - run: npm run test:ci -- --project=${{ matrix.browser }}
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}

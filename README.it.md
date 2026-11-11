@@ -161,7 +161,7 @@ page object in `src/pages/example/`.
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) viene eseguito sui push su `main`, `ui-a11y` e `ui-a11y-dast`, sulle
 pull request e su richiesta. Controlla i tipi, esegue il lint, verifica le linee guida del repository, lancia gli unit test, verifica la formattazione, controlla
-che gli entry point delle skill AI siano sincronizzati, lancia tutti i test sui browser e carica il
+che gli entry point delle skill AI siano sincronizzati, verifica che il tag dell'immagine Playwright corrisponda alla versione fissata di `@playwright/test`, lancia tutti i test sui browser e carica il
 report HTML come artifact. Non richiede secret né servizi esterni.
 
 ## Varianti
