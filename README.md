@@ -18,6 +18,8 @@ external account, database or server.
 - **Log in once per browser**: a setup project signs in, saves the session, and every test reuses it.
 - **Typed configuration**: environment variables are validated with [Zod](https://zod.dev) at
   startup, so a missing or malformed value fails fast with a clear message.
+- **Accessibility checks**: a `scanAxe()` fixture runs [axe-core](https://github.com/dequelabs/axe-core)
+  against WCAG 2.1 A/AA and attaches the full results to the report.
 - **Cross-browser**: Chromium, Firefox and WebKit by default.
 - **Quality tooling**: ESLint, Prettier, strict TypeScript, and a Husky pre-commit hook with
   lint-staged.
@@ -39,7 +41,8 @@ npm test
 ```
 
 Playwright starts the demo app on `http://127.0.0.1:4173`, signs in once per browser, and runs the
-example specs (session reuse, sign-out and form validation) in all three browsers.
+example specs (session reuse, sign-out and form validation) in all three browsers, with an
+accessibility scan for each UI state.
 
 > The demo login only stores a display name in `localStorage`. It is a placeholder, not a secure
 > authentication system.
@@ -82,7 +85,7 @@ also gets `'@destructive'` (`{ tag: ['@regression', '@destructive'] }`).
 ├── lib/
 │   ├── api/            # HTTP status constants and failure classifications
 │   ├── auth/           # Storage-state paths and setup helpers
-│   ├── fixtures/       # Fixtures composed with mergeTests() (page objects)
+│   ├── fixtures/       # Fixtures composed with mergeTests() (page objects, accessibility)
 │   └── reporting/      # Failure-reason types and labels for reports
 ├── src/
 │   ├── config/
@@ -110,10 +113,11 @@ Import paths use aliases: `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*`, `@sh
 ```ts
 import { test, expect } from '@fixtures/base';
 
-test('signs out of the example app', { tag: '@regression' }, async ({ examplePage }) => {
+test('signs out of the example app', { tag: '@regression' }, async ({ examplePage, scanAxe }) => {
   await examplePage.do.open();
   await examplePage.do.signOut();
   await expect(examplePage.on.displayName).toBeVisible();
+  await scanAxe('signed-out');
 });
 ```
 
@@ -152,11 +156,11 @@ external services.
 
 The template ships as three stacked branches; pick the one that matches what your team needs.
 
-| Branch         | What it contains                                                                           | When to choose it                               |
-| -------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------- |
-| `main`         | UI tests only: page objects, fixtures, tags, guideline rules, AI skills **(you are here)** | You only need functional UI automation.         |
-| `ui-a11y`      | `main` plus axe-core accessibility scans and the `a11y-reviewer` skill                     | You also check accessibility on every UI state. |
-| `ui-a11y-dast` | `ui-a11y` plus the OWASP ZAP passive-scan suite                                            | You also want passive security scanning (DAST). |
+| Branch         | What it contains                                                                          | When to choose it                               |
+| -------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `main`         | UI tests only: page objects, fixtures, tags, guideline rules, AI skills                   | You only need functional UI automation.         |
+| `ui-a11y`      | `main` plus axe-core accessibility scans and the `a11y-reviewer` skill **(you are here)** | You also check accessibility on every UI state. |
+| `ui-a11y-dast` | `ui-a11y` plus the OWASP ZAP passive-scan suite                                           | You also want passive security scanning (DAST). |
 
 Maintenance rule: fix and change shared things on `main` only, then merge `main` into `ui-a11y`
 and `ui-a11y` into `ui-a11y-dast`, in that order.
@@ -170,6 +174,7 @@ once in `.agents/skills/<name>/SKILL.md` and shared by every supported assistant
 | ----------------------- | --------------------------------------------------------------------- |
 | `create-page-object`    | Builds a page object and its first spec from the live application     |
 | `pom-reviewer`          | Reviews page objects and specs against the Page Object Model rules    |
+| `a11y-reviewer`         | Checks that UI specs scan every meaningful state for accessibility    |
 | `refactor-spec`         | Moves raw locators and interactions from a spec into page objects     |
 | `review-branch`         | Reviews a local branch's diff, runs the checks, and reports findings  |
 | `investigate-pr`        | Gathers a GitHub PR's diff, reviews and CI status before a review     |
@@ -190,7 +195,7 @@ TypeScript file after it is written. It also stops the assistant from reading or
 
 ## Conventions
 
-Coding conventions for page objects, fixtures, authentication, and API coverage are
+Coding conventions for page objects, fixtures, authentication, API coverage and accessibility are
 in [docs/ai/repository-guidelines.md](docs/ai/repository-guidelines.md). They are written for both
 people and AI coding assistants.
 

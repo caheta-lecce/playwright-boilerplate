@@ -30,6 +30,7 @@ from the list. When adopting the template, extend these tables with the project'
 | **Reuse first** | Reuse existing fixtures, page objects, helpers, constants, and test data before adding new ones. A data value already present in a `<domain>.data.ts` is reused, not copied under a new key; when a second spec needs it, rename its key to a neutral, spec-agnostic name and point both specs at it. |
 | **Test tags** | Every test in a UI spec carries exactly one suite tag through Playwright's options, `test('title', { tag: '@smoke' }, ...)` or `{ tag: '@regression' }`, and optionally `'@destructive'` (`{ tag: ['@regression', '@destructive'] }`) when it changes shared data. `npm test` and the per-browser scripts skip `@destructive`; `npm run test:smoke`, `test:regression` and `test:destructive` run one tag through `scripts/run-suite.mjs`, which filters only the spec projects so the auth setup still runs (a CLI `--grep` would filter it out). Hook: `spec-missing-suite-tag`. |
 | **Auth reuse** | Specs reuse the storage state saved by the setup project; only login specs log in inline. |
+| **Accessibility** | Call `scanAxe(label)` after reaching each meaningful UI state. |
 | **Close review gaps** | When a review (human or AI) flags a violation that the rules or hooks let through, the same change also closes the gap: tighten the matching Constitution row or section, or add a new one, and add a rule to `scripts/guideline-rules.mjs` (with a case in `unit-tests/guidelines/`) when it can be checked mechanically with near-zero false positives (existing offenders go in `KNOWN_VIOLATIONS`). If a rule only states the requirement, the next review will just flag the same thing again. |
 | **Verification** | Changed code passes `npm run type:check`, `npm run lint`, `npm run format:check`, and `npm run test:unit`, and affected specs are run before the work is called done. |
 
@@ -102,7 +103,11 @@ Required fields are not optional; nullable fields use `.nullable()`. Export sche
 types. Add aliases and barrel exports when introducing those directories. Do not loosen contracts
 to hide application defects. Record the discrepancy and link its tracking issue.
 
-## Verification
+## Accessibility and verification
+
+Use `scanAxe(label)` from the shared fixture after reaching each meaningful UI state. The template
+fails on violations and attaches full axe results. A report-only exception needs an explicit reason.
+Automated checks do not replace manual accessibility testing.
 
 Before submitting changes, run type checking, lint, formatting, unit tests and relevant browser tests. Never
 add fixture logic or raw UI interactions to specs merely to make a test pass. Search both symbolic
