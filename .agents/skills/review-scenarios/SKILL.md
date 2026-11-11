@@ -34,8 +34,6 @@ listed.
    blocked by it and confirm those tests are either deferred or have a workaround noted.
 6. **Naming consistency** — Check that test IDs follow the plan's own naming convention and that
    test names describe the scenario clearly.
-7. **Accessibility states** — Note the UI states each test reaches that should get an accessibility
-   scan (`scanAxe`), so they aren't forgotten during implementation.
 
 ## Output format
 

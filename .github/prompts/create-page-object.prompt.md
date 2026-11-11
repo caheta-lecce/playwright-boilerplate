@@ -1,5 +1,5 @@
 ---
-description: 'Create a new Playwright page object (Locators/Actions/Page) and its first spec from the live application — explore the real UI first, capture every state including success, error, validation, loading and empty feedback, choose accessible locators, register the fixture, and verify with type check, lint, tests and the pom-reviewer and a11y-reviewer skills. Use when the user asks to add a page object, cover a new page or flow, or write tests for a page that has no page object yet. For moving code out of an existing spec use refactor-spec instead.'
+description: 'Create a new Playwright page object (Locators/Actions/Page) and its first spec from the live application — explore the real UI first, capture every state including success, error, validation, loading and empty feedback, choose accessible locators, register the fixture, and verify with type check, lint, tests and the pom-reviewer skill. Use when the user asks to add a page object, cover a new page or flow, or write tests for a page that has no page object yet. For moving code out of an existing spec use refactor-spec instead.'
 mode: agent
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: create-page-object
-description: Create a new Playwright page object (Locators/Actions/Page) and its first spec from the live application — explore the real UI first, capture every state including success, error, validation, loading and empty feedback, choose accessible locators, register the fixture, and verify with type check, lint, tests and the pom-reviewer and a11y-reviewer skills. Use when the user asks to add a page object, cover a new page or flow, or write tests for a page that has no page object yet. For moving code out of an existing spec use refactor-spec instead.
+description: Create a new Playwright page object (Locators/Actions/Page) and its first spec from the live application — explore the real UI first, capture every state including success, error, validation, loading and empty feedback, choose accessible locators, register the fixture, and verify with type check, lint, tests and the pom-reviewer skill. Use when the user asks to add a page object, cover a new page or flow, or write tests for a page that has no page object yet. For moving code out of an existing spec use refactor-spec instead.
 ---
 
 # Create a page object from the live application
@@ -74,8 +74,7 @@ Add the page object to `lib/fixtures/page-fixture.ts`. Specs receive it by name 
 ### 6. Write the first spec
 
 Under `src/tests/ui/<domain>/`, import `test` and `expect` from `@fixtures/base`. Drive the flow
-through `<page>.do.*`, assert through `<page>.on.*`, and call `scanAxe('<state>')` after each
-meaningful state is reached and asserted. Give every test exactly one suite tag,
+through `<page>.do.*`, assert through `<page>.on.*`. Give every test exactly one suite tag,
 `test('title', { tag: '@smoke' }, ...)` or `'@regression'` (plus `'@destructive'` if it changes
 shared data). Read users and settings from `src/config/`, never literals. For a signed-out state, use `test.use({ storageState: { cookies: [], origins: [] } })`.
 
@@ -87,6 +86,5 @@ npm run lint
 npx playwright test src/tests/ui/<domain>/ --repeat-each=3
 ```
 
-Then apply the `pom-reviewer` and `a11y-reviewer` skills to the new files — in subagents if your
-tool supports them (Claude Code: the `pom-reviewer` and `a11y-reviewer` agents) — and fix what they
-flag.
+Then apply the `pom-reviewer` skill to the new files — in a subagent if your tool supports
+them (Claude Code: the `pom-reviewer` agent) — and fix what it flags.

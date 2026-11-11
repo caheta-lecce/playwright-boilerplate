@@ -16,11 +16,10 @@ export type FailureKey =
   | 'validation'
   | 'setup'
   | 'closed'
-  | 'a11y'
   | 'unknown';
 
 export interface FailureDetail {
-  readonly category: 'Functional' | 'Infrastructure' | 'Security' | 'Network' | 'Accessibility';
+  readonly category: 'Functional' | 'Infrastructure' | 'Security' | 'Network';
   readonly message: string;
   readonly severity: 'P1' | 'P2' | 'P3';
 }

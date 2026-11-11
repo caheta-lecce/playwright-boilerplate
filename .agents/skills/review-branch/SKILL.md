@@ -1,6 +1,6 @@
 ---
 name: review-branch
-description: Review a local Git branch's diff against this repository's own conventions — three-dot diff, routed checks (pom-reviewer/a11y-reviewer/API coverage), lint/typecheck/test verification scoped to changed files, and a tiered report with a confidence score. Use when the user names a branch alongside a review intent, even without a GitHub PR ("review branch X", "is branch Y good to merge", "audit the changes on branch Z"). Do not use for reviewing an existing GitHub PR's mergeability/CI/threads (that's investigate-pr) or for authoring new tests/page objects from scratch.
+description: Review a local Git branch's diff against this repository's own conventions — three-dot diff, routed checks (pom-reviewer/API coverage), lint/typecheck/test verification scoped to changed files, and a tiered report with a confidence score. Use when the user names a branch alongside a review intent, even without a GitHub PR ("review branch X", "is branch Y good to merge", "audit the changes on branch Z"). Do not use for reviewing an existing GitHub PR's mergeability/CI/threads (that's investigate-pr) or for authoring new tests/page objects from scratch.
 ---
 
 # Review a branch against repository conventions
@@ -10,10 +10,9 @@ a routed, verified, tiered code-quality pass that doesn't require a GitHub PR to
 `docs/ai/repository-guidelines.md` as the source of truth for every rule cited here.
 
 This is distinct from the `investigate-pr` skill, which requires an existing GitHub PR and focuses
-on mergeability, CI status, and review threads. It is also distinct from the `pom-reviewer` and
-`a11y-reviewer` skills, which review a fixed set of files handed to them rather than resolving a
-branch diff, routing it, and running verification themselves. This skill composes those two as
-delegated checks instead of duplicating their logic.
+on mergeability, CI status, and review threads. It is also distinct from the `pom-reviewer` skill, which reviews a fixed set of files handed to
+it rather than resolving a branch diff, routing it, and running verification itself. This skill
+composes it as a delegated check instead of duplicating its logic.
 
 ## Input
 
@@ -60,7 +59,6 @@ The changed files decide which checks apply. Map every changed path before revie
 | Changed path (glob)                                            | What to apply                                                                                                                                                             |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/pages/**`, `src/tests/ui/**`, `lib/fixtures/**`           | Apply the `pom-reviewer` skill (`.agents/skills/pom-reviewer/SKILL.md`) to these files — in a subagent if your tool supports one (Claude Code: the `pom-reviewer` agent). |
-| `src/tests/ui/**` that reach new UI states                     | Apply the `a11y-reviewer` skill (`.agents/skills/a11y-reviewer/SKILL.md`) the same way.                                                                                   |
 | `lib/api/**`, `src/models/**`, `src/shared/types/api-types.ts` | Apply the "API coverage" section of `docs/ai/repository-guidelines.md`.                                                                                                   |
 | `.agents/skills/**`                                            | Check `npm run ai:skills:check` passes (generated entry points are in sync).                                                                                              |
 | anything else                                                  | Apply the general rules in `docs/ai/repository-guidelines.md`.                                                                                                            |

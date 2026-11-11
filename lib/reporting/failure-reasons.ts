@@ -74,12 +74,6 @@ export const FAILURE_REASONS: Record<FailureKey, FailureDetail> = {
     message:
       'Page/context/browser closed mid-action — likely a crash, a prior step tearing down early, or an explicit close() elsewhere in the test; check the trace, not network logs',
   },
-  a11y: {
-    category: 'Accessibility',
-    severity: 'P2',
-    message:
-      'axe-core found accessibility violations; inspect the axe-<label> JSON attachment for affected elements and remediation guidance',
-  },
   unknown: {
     category: 'Network',
     severity: 'P3',
