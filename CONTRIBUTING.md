@@ -55,6 +55,20 @@ the same checks. Do not bypass hooks (`--no-verify`) and do not weaken a rule to
   `AGENTS.md` are produced by `npm run ai:skills:sync`. Never edit them by hand; edit the canonical
   skill, run the sync, and commit the result. `npm run ai:skills:check` fails CI if they drift.
 
+## Updating Playwright
+
+Playwright is pinned to an exact version, and the CI container image tag in
+`.github/workflows/ci.yml` is pinned to the same version. A new version is tested first, then both
+are bumped deliberately:
+
+1. Test locally: `npm i -D -E @playwright/test@<version>`, `npx playwright install`, then run the
+   suite on every browser project (and on every branch variant).
+2. In one PR, commit the `package.json` and lockfile change and update the `image:` tag in
+   `.github/workflows/ci.yml` to `mcr.microsoft.com/playwright:v<version>-noble`.
+
+`npm run playwright:image:check` (run in CI) fails with both versions named when they differ, so a
+Dependabot PR for `@playwright/test` stays red until the image tag is bumped in it.
+
 ## Guard files
 
 Claude Code's PreToolUse hook blocks any Write, Edit or MultiEdit by the agent on the files that

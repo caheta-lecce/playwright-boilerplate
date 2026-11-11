@@ -173,7 +173,7 @@ page object in `src/pages/example/`.
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pushes to `main`, `ui-a11y` and `ui-a11y-dast`, on pull requests
 and on demand. It type-checks, lints, checks the repository guidelines, runs the unit tests, checks formatting, checks that the AI skill entry points are
-in sync, runs all browser tests, and uploads the HTML report as an artifact. It needs no secrets or
+in sync, checks that the Playwright image tag matches the pinned `@playwright/test` version, runs all browser tests, and uploads the HTML report as an artifact. It needs no secrets or
 external services.
 
 ## ZAP passive scan
