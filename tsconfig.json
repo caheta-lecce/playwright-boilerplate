@@ -19,5 +19,5 @@
       "@data/*": ["./src/data/*"]
     }
   },
-  "include": ["playwright.config.ts", "lib/**/*.ts", "src/**/*.ts"]
+  "include": ["playwright.config.ts", "playwright.zap.config.ts", "lib/**/*.ts", "src/**/*.ts"]
 }
