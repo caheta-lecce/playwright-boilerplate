@@ -12,6 +12,10 @@ const browsers = [
 // setup projects: a CLI `--grep` would also filter out the auth setup tests that specs depend on.
 const suiteGrep = process.env.TEST_GREP ? new RegExp(process.env.TEST_GREP) : undefined;
 
+// One run id for the whole run: workers inherit it, so every axe result lands in the same
+// reports/a11y/<runId>/ folder (sortable UTC timestamp; set A11Y_RUN_ID to choose your own).
+process.env['A11Y_RUN_ID'] ??= new Date().toISOString().replace(/[:.]/g, '-');
+
 export default defineConfig({
   testDir: './src/tests',
   // ZAP journeys need a ZAP daemon; they run through playwright.zap.config.ts (npm run test:zap).

@@ -20,7 +20,8 @@ account esterni, database o server.
 - **Configurazione tipizzata**: le variabili d'ambiente sono validate con [Zod](https://zod.dev)
   all'avvio, quindi un valore mancante o non valido fallisce subito con un messaggio chiaro.
 - **Controlli di accessibilità**: la fixture `scanAxe()` esegue
-  [axe-core](https://github.com/dequelabs/axe-core) secondo WCAG 2.1 A/AA e allega i risultati
+  [axe-core](https://github.com/dequelabs/axe-core) secondo WCAG 2.1 A/AA, salva i risultati in
+  `reports/a11y/` (con `a11y:report` e `a11y:compare`) e allega i risultati
   completi al report.
 - **Scansione passiva ZAP**: i journey in `src/tests/security/zap/` passano da un proxy OWASP ZAP
   con una baseline di regole fissata; vedi [docs/zap/zap-proxy-scan.md](docs/zap/zap-proxy-scan.md)
@@ -61,6 +62,9 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | Comando                                          | Cosa fa                                                          |
 | ------------------------------------------------ | ---------------------------------------------------------------- |
 | `npm test`                                       | Esegue tutti i test su tutti i browser, esclusi i `@destructive` |
+| `npm run test:ci`                                | Come `npm test` più `--forbid-only` (come in CI)                 |
+| `npm run test:changed` / `test:changed:main`     | Esegue solo gli spec modificati rispetto a `HEAD` / `main`       |
+| `npm run test:debug`                             | Esegue con l'inspector di Playwright (`--debug`)                 |
 | `npm run test:smoke` / `test:regression`         | Esegue solo la suite `@smoke` o `@regression`                    |
 | `npm run test:destructive`                       | Esegue solo i test `@destructive`                                |
 | `npm run test:chromium` / `:firefox` / `:webkit` | Esegue i test su un solo browser                                 |
@@ -73,11 +77,13 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | `npm run test:zap:no-proxy`                      | Esegue i journey ZAP senza proxy                                 |
 | `npm run zap:baseline`                           | Verifica ZAP rispetto alla baseline fissata                      |
 | `npm run zap:reset`                              | Azzera la sessione ZAP in esecuzione                             |
+| `npm run a11y:report`                            | Markdown + CSV dell'ultima run axe (`reports/a11y/`)             |
+| `npm run a11y:compare -- <base> <head>`          | Violazioni nuove / risolte / invariate; exit 1 se nuove          |
 | `npm run report`                                 | Apre l'ultimo report HTML                                        |
 | `npm run guidelines:check`                       | Verifica le linee guida controllabili in automatico              |
 | `npm run ai:skills:sync` / `ai:skills:check`     | Genera, o verifica, gli entry point delle skill AI               |
 | `npm run type:check`                             | Controllo dei tipi con `tsc`                                     |
-| `npm run lint`                                   | Lint con ESLint                                                  |
+| `npm run lint` / `lint:fix`                      | Lint con ESLint, con correzioni automatiche opzionali            |
 | `npm run format` / `format:check`                | Formatta, o verifica la formattazione, con Prettier              |
 
 ## Tag dei test
@@ -238,6 +244,10 @@ Per Claude Code, `.claude/settings.json` aggiunge anche due hook: uno blocca le 
 violano le linee guida verificabili in automatico (per esempio i selettori XPath), l'altro esegue
 lint e formattazione su ogni file TypeScript appena scritto. Impedisce inoltre all'assistente di
 leggere o modificare `.env`.
+
+## Licenza
+
+MIT, vedi [LICENSE](LICENSE).
 
 ## Convenzioni
 

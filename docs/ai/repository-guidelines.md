@@ -59,10 +59,30 @@ from the list. When adopting the template, extend these tables with the project'
 | **No self-edited guards** | An agent never edits the files that enforce these rules: `.claude/scripts/**`, `.claude/settings.json`, `scripts/guideline-rules.mjs`, `scripts/check-guidelines.mjs` and `.husky/**`. The Claude Code hook blocks such writes; a human makes the change, or relaunches the agent with `ALLOW_GUARD_EDITS=1` set outside it. |
 | **No loosened contracts** | Never loosen a schema or expected status to make a test green; record the discrepancy and link its issue. |
 
+## File naming
+
+`eslint-plugin-check-file` enforces file and folder names (`npm run lint`); identifier naming stays
+in `eslint-rules/name-convention.js`, so the two do not overlap.
+
+- `src/pages/**`: PascalCase `<Name>Locators.ts`, `<Name>Actions.ts` or `<Name>Page.ts`.
+- `src/data/**`: kebab-case `<domain>.data.ts`.
+- `src/tests/**`: kebab-case `<name>.spec.ts`, or `<name>.ui.setup.ts` for setup projects.
+- `lib/fixtures/*`: kebab-case; every folder under `src/` and `lib/` is kebab-case.
+
+## Generated test data
+
+Generate values with `@faker-js/faker` only inside `src/data/<domain>.data.ts` (a typed factory such
+as `buildDisplayName()`); specs call the factory and never import faker. Output is seeded: the default
+seed is fixed, and `TEST_DATA_SEED=<number>` replays another sequence. The sequence is per worker
+and follows call order, so each test generates and uses its own value and never relies on a value
+another test produced. Constrain generated values to what the UI accepts (e.g. letters and one
+space) so they cannot make a test flaky.
+
 ## Structure
 
 - `lib/fixtures/`: shared fixture modules composed with `mergeTests()`.
 - `lib/auth/`: storage-state paths and setup helpers.
+- `lib/a11y/`: on-disk axe result shape and writer.
 - `lib/api/`: HTTP constants.
 - `lib/reporting/`: failure classifications (`FAILURE_REASONS`) and their types.
 - `src/config/schemas/`: Zod-validated environment and user configuration.
@@ -111,6 +131,20 @@ Use `scanAxe(label)` from the shared fixture after reaching each meaningful UI s
 fails on violations and attaches full axe results. A report-only exception needs an explicit reason.
 Automated checks do not replace manual accessibility testing.
 
-Before submitting changes, run type checking, lint, formatting, unit tests and relevant browser tests. Never
+Every scan is also written to disk, git-ignored, as
+`reports/a11y/<runId>/<project>/<spec>--<label>.json` (shape `A11yScanFile` in
+`lib/a11y/results.ts`: rule id, impact, help URL and node targets per violation). The run id is a
+sortable UTC timestamp fixed once in `playwright.config.ts` (override with `A11Y_RUN_ID`), and each
+scan owns its file, so parallel workers and the three browsers never overwrite each other.
+Because labels name the files and identify a violation across runs, keep them stable.
+
+- `npm run a11y:report [-- <run|latest|folder>]` writes `summary.md` and `issues.csv` (Excel-ready)
+  into the run folder, grouped by rule, impact, page/state and browser, de-duplicated.
+- `npm run a11y:compare -- <base> <head>` (defaults `previous` and `latest`) lists new, fixed and
+  unchanged violations by rule, state, browser and target; it exits 1 on new violations unless
+  `--no-fail`, and `--out <file>` also saves the Markdown. Logic lives in `scripts/a11y/` with tests in
+  `unit-tests/a11y/`.
+
+Before submitting changes, run type checking, lint (`npm run lint:fix` fixes what it can), formatting, unit tests and relevant browser tests (`npm run test:changed` runs only specs changed since the last commit). Never
 add fixture logic or raw UI interactions to specs merely to make a test pass. Search both symbolic
 and raw values before renaming enums or data constants.
