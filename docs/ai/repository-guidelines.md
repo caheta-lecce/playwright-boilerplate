@@ -55,6 +55,7 @@ from the list. When adopting the template, extend these tables with the project'
 | **No unexplained soft assertions** | `expect.soft` is allowed only with a `// Soft: <reason>` comment right above saying why the test must go on if it fails. Otherwise it's a hard `expect`. Hook: `no-unexplained-soft-assertion`. |
 | **No fixtures in specs** | Never `test.extend` inside a spec; fixtures live in `lib/fixtures/`. Hook: `no-fixture-in-spec`. |
 | **No secrets or client data** | Never commit credentials, auth artifacts, project URLs, or customer data. |
+| **No self-edited guards** | An agent never edits the files that enforce these rules: `.claude/scripts/**`, `.claude/settings.json`, `scripts/guideline-rules.mjs`, `scripts/check-guidelines.mjs` and `.husky/**`. The Claude Code hook blocks such writes; a human makes the change, or relaunches the agent with `ALLOW_GUARD_EDITS=1` set outside it. |
 | **No loosened contracts** | Never loosen a schema or expected status to make a test green; record the discrepancy and link its issue. |
 
 ## Structure

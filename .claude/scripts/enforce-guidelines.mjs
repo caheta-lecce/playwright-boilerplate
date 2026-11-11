@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { RULES } from '../../scripts/guideline-rules.mjs';
+import { isGuardPath, guardBlockMessage } from './guard-paths.mjs';
 
 // Applies one old_string -> new_string replacement the way Edit/MultiEdit would.
 function applyReplacement(content, oldString, newString, replaceAll) {
@@ -82,6 +83,12 @@ async function main() {
   const toolInput = payload.tool_input ?? {};
   const filePath = toolInput.file_path ?? '';
   if (!filePath || !['Write', 'Edit', 'MultiEdit'].includes(toolName)) return 0;
+
+  // The agent never edits the files that enforce these rules; see guard-paths.mjs.
+  if (process.env.ALLOW_GUARD_EDITS !== '1' && isGuardPath(filePath, process.cwd())) {
+    process.stderr.write(guardBlockMessage(filePath));
+    return 2;
+  }
 
   const relPath = path.relative(process.cwd(), filePath).split(path.sep).join('/');
   const content = resultingContent(toolName, toolInput, filePath);

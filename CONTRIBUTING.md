@@ -40,6 +40,20 @@ the same checks. Do not bypass hooks (`--no-verify`) and do not weaken a rule to
   `AGENTS.md` are produced by `npm run ai:skills:sync`. Never edit them by hand; edit the canonical
   skill, run the sync, and commit the result. `npm run ai:skills:check` fails CI if they drift.
 
+## Guard files
+
+Claude Code's PreToolUse hook blocks any Write, Edit or MultiEdit by the agent on the files that
+enforce the rules: `.claude/scripts/**`, `.claude/settings.json`, `scripts/guideline-rules.mjs`,
+`scripts/check-guidelines.mjs` and `.husky/**`. A person edits them by hand, or relaunches the agent
+with `ALLOW_GUARD_EDITS=1` set in the environment outside the agent (for example
+`ALLOW_GUARD_EDITS=1 claude`). The agent reports the change it needs instead of working around it.
+
+## Branch variants and where to fix things
+
+The repository ships in three stacked variants (see the "Variants" table in the README). Fix bugs and
+add shared changes on `main`, then merge `main` into `ui-a11y`, and `ui-a11y` into
+`ui-a11y-dast`. Never fix something only on an upper branch, or the variants drift apart.
+
 ## Pull requests
 
 Keep a PR to one concern, fill in the pull request template, and mention anything you could not
