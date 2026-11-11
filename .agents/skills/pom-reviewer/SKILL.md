@@ -70,10 +70,15 @@ what changed plus enough surrounding context to judge it, not the whole tree.
 8. **Domain placement.** Specs belong under `src/tests/ui/<domain>/` and page objects under
    `src/pages/<domain>/`, matching the domain the spec targets.
 
-9. **Feedback-locator completeness.** A page object covering a form or CRUD flow needs locators for
-   more than the happy path — check it has (or the flow genuinely doesn't need) locators for
-   success feedback, error feedback, field-level validation messages, and loading/empty states.
-   Flag the missing state rather than assuming it wasn't needed.
+9. **Suite tags.** Every test in a UI spec has exactly one suite tag (`{ tag: '@smoke' }` or
+   `{ tag: '@regression' }`), plus `'@destructive'` when it changes shared data. Flag a missing
+   tag, two suite tags on one test, or a data-changing test without `@destructive`; the first two
+   are also caught by the `spec-missing-suite-tag` hook.
+
+10. **Feedback-locator completeness.** A page object covering a form or CRUD flow needs locators for
+    more than the happy path — check it has (or the flow genuinely doesn't need) locators for
+    success feedback, error feedback, field-level validation messages, and loading/empty states.
+    Flag the missing state rather than assuming it wasn't needed.
 
 ## Output
 

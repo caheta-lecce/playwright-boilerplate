@@ -58,25 +58,40 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 
 ## Script
 
-| Comando                                          | Cosa fa                                             |
-| ------------------------------------------------ | --------------------------------------------------- |
-| `npm test`                                       | Esegue tutti i test su tutti i browser              |
-| `npm run test:chromium` / `:firefox` / `:webkit` | Esegue i test su un solo browser                    |
-| `npm run test:headed`                            | Esegue i test con il browser visibile               |
-| `npm run test:ui`                                | Apre la UI mode di Playwright                       |
-| `npm run test:list`                              | Elenca i test senza eseguirli                       |
-| `npm run test:unit`                              | Esegue gli unit test `node:test`                    |
-| `npm run test:zap`                               | Esegue i journey ZAP tramite un proxy ZAP           |
-| `npm run test:zap:headed`                        | Come sopra, con il browser visibile                 |
-| `npm run test:zap:no-proxy`                      | Esegue i journey ZAP senza proxy                    |
-| `npm run zap:baseline`                           | Verifica ZAP rispetto alla baseline fissata         |
-| `npm run zap:reset`                              | Azzera la sessione ZAP in esecuzione                |
-| `npm run report`                                 | Apre l'ultimo report HTML                           |
-| `npm run guidelines:check`                       | Verifica le linee guida controllabili in automatico |
-| `npm run ai:skills:sync` / `ai:skills:check`     | Genera, o verifica, gli entry point delle skill AI  |
-| `npm run type:check`                             | Controllo dei tipi con `tsc`                        |
-| `npm run lint`                                   | Lint con ESLint                                     |
-| `npm run format` / `format:check`                | Formatta, o verifica la formattazione, con Prettier |
+| Comando                                          | Cosa fa                                                          |
+| ------------------------------------------------ | ---------------------------------------------------------------- |
+| `npm test`                                       | Esegue tutti i test su tutti i browser, esclusi i `@destructive` |
+| `npm run test:smoke` / `test:regression`         | Esegue solo la suite `@smoke` o `@regression`                    |
+| `npm run test:destructive`                       | Esegue solo i test `@destructive`                                |
+| `npm run test:chromium` / `:firefox` / `:webkit` | Esegue i test su un solo browser                                 |
+| `npm run test:headed`                            | Esegue i test con il browser visibile                            |
+| `npm run test:ui`                                | Apre la UI mode di Playwright                                    |
+| `npm run test:list`                              | Elenca i test senza eseguirli                                    |
+| `npm run test:unit`                              | Esegue gli unit test `node:test`                                 |
+| `npm run test:zap`                               | Esegue i journey ZAP tramite un proxy ZAP                        |
+| `npm run test:zap:headed`                        | Come sopra, con il browser visibile                              |
+| `npm run test:zap:no-proxy`                      | Esegue i journey ZAP senza proxy                                 |
+| `npm run zap:baseline`                           | Verifica ZAP rispetto alla baseline fissata                      |
+| `npm run zap:reset`                              | Azzera la sessione ZAP in esecuzione                             |
+| `npm run report`                                 | Apre l'ultimo report HTML                                        |
+| `npm run guidelines:check`                       | Verifica le linee guida controllabili in automatico              |
+| `npm run ai:skills:sync` / `ai:skills:check`     | Genera, o verifica, gli entry point delle skill AI               |
+| `npm run type:check`                             | Controllo dei tipi con `tsc`                                     |
+| `npm run lint`                                   | Lint con ESLint                                                  |
+| `npm run format` / `format:check`                | Formatta, o verifica la formattazione, con Prettier              |
+
+## Tag dei test
+
+Ogni test UI ha esattamente un tag di suite nelle opzioni di Playwright: `{ tag: '@smoke' }` per i
+controlli critici e rapidi, `{ tag: '@regression' }` per tutto il resto. Un test che modifica dati
+condivisi riceve anche `'@destructive'` (`{ tag: ['@regression', '@destructive'] }`).
+
+- `npm test` e gli script per singolo browser saltano i test `@destructive`.
+- `npm run test:smoke`, `test:regression` e `test:destructive` eseguono un solo tag. Passano da
+  `scripts/run-suite.mjs`, che applica il tag solo ai progetti degli spec: un semplice `--grep`
+  filtrerebbe anche i test di setup dell'autenticazione da cui dipendono tutti i progetti, e nessuna
+  sessione verrebbe salvata.
+- La regola `spec-missing-suite-tag` fa fallire un test UI senza esattamente un tag di suite.
 
 ## Struttura del progetto
 
@@ -100,6 +115,7 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 │       └── ui/<dominio>/   # Spec UI
 ├── scripts/
 │   ├── demo-server.mjs             # Applicazione demo locale usata dagli esempi
+│   ├── run-suite.mjs               # Esegue una suite per tag senza filtrare il setup auth
 │   ├── configure-zap-baseline.mjs  # Verifica e applica la baseline ZAP fissata
 │   └── reset-zap-session.mjs       # Azzera la sessione ZAP prima di un'esecuzione
 ├── docs/
@@ -117,7 +133,7 @@ Gli import usano gli alias `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*`, `@s
 ```ts
 import { test, expect } from '@fixtures/base';
 
-test('signs out of the example app', async ({ examplePage, scanAxe }) => {
+test('signs out of the example app', { tag: '@regression' }, async ({ examplePage, scanAxe }) => {
   await examplePage.do.open();
   await examplePage.do.signOut();
   await expect(examplePage.on.displayName).toBeVisible();

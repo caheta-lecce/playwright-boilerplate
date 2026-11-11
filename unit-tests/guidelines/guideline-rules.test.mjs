@@ -94,3 +94,48 @@ describe('no-unexplained-soft-assertion', () => {
     );
   });
 });
+
+describe('spec-missing-suite-tag', () => {
+  it('flags a test with no options object', () => {
+    assert.ok(violates('spec-missing-suite-tag', SPEC, "test('x', async ({ page }) => {});"));
+  });
+
+  it('flags a test with options but no suite tag', () => {
+    assert.ok(
+      violates(
+        'spec-missing-suite-tag',
+        SPEC,
+        "test('x', { tag: '@destructive' }, async () => {});"
+      )
+    );
+  });
+
+  it('flags two suite tags on one test', () => {
+    assert.ok(
+      violates(
+        'spec-missing-suite-tag',
+        SPEC,
+        "test('x', { tag: ['@smoke', '@regression'] }, async () => {});"
+      )
+    );
+  });
+
+  it('allows one suite tag, with or without @destructive', () => {
+    assert.ok(!violates('spec-missing-suite-tag', SPEC, "test('x', { tag: '@smoke' }, fn);"));
+    assert.ok(
+      !violates(
+        'spec-missing-suite-tag',
+        SPEC,
+        "test('x', { tag: ['@regression', '@destructive'] }, fn);"
+      )
+    );
+  });
+
+  it('ignores steps, describes, hooks and non-UI files', () => {
+    assert.ok(!violates('spec-missing-suite-tag', SPEC, "await test.step('x', async () => {});"));
+    assert.ok(!violates('spec-missing-suite-tag', SPEC, "test.describe('x', () => {});"));
+    assert.ok(
+      !violates('spec-missing-suite-tag', 'src/tests/setup/auth.ui.setup.ts', "setup('x', fn);")
+    );
+  });
+});

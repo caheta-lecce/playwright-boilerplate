@@ -81,6 +81,7 @@ const KNOWN_VIOLATIONS = {
   'no-inline-locator-in-spec': new Set([]),
   'no-email-literal-in-spec': new Set([]),
   'no-string-constant-in-spec': new Set([]),
+  'spec-missing-suite-tag': new Set([]),
 };
 
 function isKnownViolation(ruleId, relPath) {
@@ -118,6 +119,20 @@ function unexplainedSoftAssertion(content) {
       if (isCommentLine(lines[j]) && /\bsoft\b/i.test(lines[j])) return false;
     }
     return true;
+  });
+}
+
+// Every `test('title', ...)` in a UI spec carries exactly one suite tag, `@smoke` or `@regression`,
+// in the Playwright options object (`test('x', { tag: '@smoke' }, async () => {})`); `@destructive`
+// is an optional extra for tests that change shared data. Calls without an options object, or with
+// zero or two suite tags, are flagged.
+const TEST_CALL = /(?<![\w.])test\(\s*(['"`])(?:(?!\1).)*\1\s*(,\s*\{([^}]*)\})?/g;
+
+function specMissingSuiteTag(content) {
+  const code = codeLines(content).join('\n');
+  return [...code.matchAll(TEST_CALL)].some((match) => {
+    const suiteTags = (match[3] ?? '').match(/['"`]@(smoke|regression)['"`]/g) ?? [];
+    return suiteTags.length !== 1;
   });
 }
 
@@ -205,6 +220,18 @@ export const RULES = [
       '`expect.soft` needs its reason in a comment right above ' +
       '(`// Soft: <why the test must go on if this fails>`). Otherwise use a hard `expect` (see ' +
       'docs/ai/repository-guidelines.md, Constitution).',
+  },
+  {
+    id: 'spec-missing-suite-tag',
+    pathTest: (relPath) =>
+      /(^|\/)src\/tests\/ui\/.+\.spec\.ts$/.test(relPath) &&
+      !isKnownViolation('spec-missing-suite-tag', relPath),
+    contentTest: specMissingSuiteTag,
+    message:
+      "Every test carries exactly one suite tag, `{ tag: '@smoke' }` or `{ tag: '@regression' }` " +
+      "(plus optional '@destructive' for tests that change shared data): " +
+      "`test('title', { tag: '@smoke' }, async ({ ... }) => {})` (see " +
+      'docs/ai/repository-guidelines.md, Constitution / Test tags).',
   },
   {
     id: 'no-xpath',

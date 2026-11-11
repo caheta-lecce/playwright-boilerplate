@@ -75,8 +75,9 @@ Add the page object to `lib/fixtures/page-fixture.ts`. Specs receive it by name 
 
 Under `src/tests/ui/<domain>/`, import `test` and `expect` from `@fixtures/base`. Drive the flow
 through `<page>.do.*`, assert through `<page>.on.*`, and call `scanAxe('<state>')` after each
-meaningful state is reached and asserted. Read users and settings from `src/config/`, never
-literals. For a signed-out state, use `test.use({ storageState: { cookies: [], origins: [] } })`.
+meaningful state is reached and asserted. Give every test exactly one suite tag,
+`test('title', { tag: '@smoke' }, ...)` or `'@regression'` (plus `'@destructive'` if it changes
+shared data). Read users and settings from `src/config/`, never literals. For a signed-out state, use `test.use({ storageState: { cookies: [], origins: [] } })`.
 
 ### 7. Verify
 

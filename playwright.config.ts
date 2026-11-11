@@ -8,6 +8,10 @@ const browsers = [
   { name: 'webkit', device: 'Desktop Safari' },
 ] as const;
 
+// scripts/run-suite.mjs sets TEST_GREP (e.g. `@smoke`). It is applied per spec project, never to the
+// setup projects: a CLI `--grep` would also filter out the auth setup tests that specs depend on.
+const suiteGrep = process.env.TEST_GREP ? new RegExp(process.env.TEST_GREP) : undefined;
+
 export default defineConfig({
   testDir: './src/tests',
   // ZAP journeys need a ZAP daemon; they run through playwright.zap.config.ts (npm run test:zap).
@@ -32,6 +36,7 @@ export default defineConfig({
       name,
       testMatch: /\.spec\.ts$/,
       dependencies: [`${name}-setup`],
+      grep: suiteGrep,
       use: { ...devices[device], storageState: storageStatePath(name) },
     },
   ]),

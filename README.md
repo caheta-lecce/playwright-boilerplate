@@ -53,25 +53,39 @@ accessibility scan for each UI state.
 
 ## Scripts
 
-| Command                                          | What it does                               |
-| ------------------------------------------------ | ------------------------------------------ |
-| `npm test`                                       | Run all tests in all browsers              |
-| `npm run test:chromium` / `:firefox` / `:webkit` | Run tests in one browser                   |
-| `npm run test:headed`                            | Run tests with a visible browser           |
-| `npm run test:ui`                                | Open Playwright UI mode                    |
-| `npm run test:list`                              | List tests without running them            |
-| `npm run test:unit`                              | Run the `node:test` unit tests             |
-| `npm run test:zap`                               | Run the ZAP journeys through a ZAP proxy   |
-| `npm run test:zap:headed`                        | Same, with a visible browser               |
-| `npm run test:zap:no-proxy`                      | Run the ZAP journeys with no proxy         |
-| `npm run zap:baseline`                           | Check ZAP against the pinned baseline      |
-| `npm run zap:reset`                              | Clear the running ZAP session              |
-| `npm run report`                                 | Open the last HTML report                  |
-| `npm run guidelines:check`                       | Check the mechanical repository guidelines |
-| `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries  |
-| `npm run type:check`                             | Type-check with `tsc`                      |
-| `npm run lint`                                   | Lint with ESLint                           |
-| `npm run format` / `format:check`                | Format, or check formatting, with Prettier |
+| Command                                          | What it does                                         |
+| ------------------------------------------------ | ---------------------------------------------------- |
+| `npm test`                                       | Run all tests in all browsers, except `@destructive` |
+| `npm run test:smoke` / `test:regression`         | Run only the `@smoke` or `@regression` suite         |
+| `npm run test:destructive`                       | Run only the `@destructive` tests                    |
+| `npm run test:chromium` / `:firefox` / `:webkit` | Run tests in one browser                             |
+| `npm run test:headed`                            | Run tests with a visible browser                     |
+| `npm run test:ui`                                | Open Playwright UI mode                              |
+| `npm run test:list`                              | List tests without running them                      |
+| `npm run test:unit`                              | Run the `node:test` unit tests                       |
+| `npm run test:zap`                               | Run the ZAP journeys through a ZAP proxy             |
+| `npm run test:zap:headed`                        | Same, with a visible browser                         |
+| `npm run test:zap:no-proxy`                      | Run the ZAP journeys with no proxy                   |
+| `npm run zap:baseline`                           | Check ZAP against the pinned baseline                |
+| `npm run zap:reset`                              | Clear the running ZAP session                        |
+| `npm run report`                                 | Open the last HTML report                            |
+| `npm run guidelines:check`                       | Check the mechanical repository guidelines           |
+| `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries            |
+| `npm run type:check`                             | Type-check with `tsc`                                |
+| `npm run lint`                                   | Lint with ESLint                                     |
+| `npm run format` / `format:check`                | Format, or check formatting, with Prettier           |
+
+## Test tags
+
+Every UI test carries exactly one suite tag in the Playwright options: `{ tag: '@smoke' }` for the
+quick critical checks or `{ tag: '@regression' }` for the rest. A test that changes shared data
+also gets `'@destructive'` (`{ tag: ['@regression', '@destructive'] }`).
+
+- `npm test` and the per-browser scripts skip `@destructive` tests.
+- `npm run test:smoke`, `test:regression` and `test:destructive` run one tag. They go through
+  `scripts/run-suite.mjs`, which applies the tag to the spec projects only: a plain `--grep` would also
+  filter out the auth setup tests that every spec project depends on, and no session would be saved.
+- The `spec-missing-suite-tag` guideline rule fails a UI test without exactly one suite tag.
 
 ## Project structure
 
@@ -95,6 +109,7 @@ accessibility scan for each UI state.
 │       └── ui/<domain>/    # UI specs
 ├── scripts/
 │   ├── demo-server.mjs             # Local demo app used by the examples
+│   ├── run-suite.mjs               # Runs one tag suite without filtering the auth setup
 │   ├── configure-zap-baseline.mjs  # Checks and applies the pinned ZAP baseline
 │   └── reset-zap-session.mjs       # Clears the ZAP session before a run
 ├── docs/
@@ -112,7 +127,7 @@ Import paths use aliases: `@lib/*`, `@fixtures/*`, `@pages/*`, `@config/*`, `@sh
 ```ts
 import { test, expect } from '@fixtures/base';
 
-test('signs out of the example app', async ({ examplePage, scanAxe }) => {
+test('signs out of the example app', { tag: '@regression' }, async ({ examplePage, scanAxe }) => {
   await examplePage.do.open();
   await examplePage.do.signOut();
   await expect(examplePage.on.displayName).toBeVisible();
