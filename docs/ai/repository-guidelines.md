@@ -82,6 +82,7 @@ space) so they cannot make a test flaky.
 
 - `lib/fixtures/`: shared fixture modules composed with `mergeTests()`.
 - `lib/auth/`: storage-state paths and setup helpers.
+- `lib/a11y/`: on-disk axe result shape and writer.
 - `lib/api/`: HTTP constants.
 - `lib/reporting/`: failure classifications (`FAILURE_REASONS`) and their types.
 - `src/config/schemas/`: Zod-validated environment and user configuration.
@@ -127,6 +128,20 @@ to hide application defects. Record the discrepancy and link its tracking issue.
 Use `scanAxe(label)` from the shared fixture after reaching each meaningful UI state. The template
 fails on violations and attaches full axe results. A report-only exception needs an explicit reason.
 Automated checks do not replace manual accessibility testing.
+
+Every scan is also written to disk, git-ignored, as
+`reports/a11y/<runId>/<project>/<spec>--<label>.json` (shape `A11yScanFile` in
+`lib/a11y/results.ts`: rule id, impact, help URL and node targets per violation). The run id is a
+sortable UTC timestamp fixed once in `playwright.config.ts` (override with `A11Y_RUN_ID`), and each
+scan owns its file, so parallel workers and the three browsers never overwrite each other.
+Because labels name the files and identify a violation across runs, keep them stable.
+
+- `npm run a11y:report [-- <run|latest|folder>]` writes `summary.md` and `issues.csv` (Excel-ready)
+  into the run folder, grouped by rule, impact, page/state and browser, de-duplicated.
+- `npm run a11y:compare -- <base> <head>` (defaults `previous` and `latest`) lists new, fixed and
+  unchanged violations by rule, state, browser and target; it exits 1 on new violations unless
+  `--no-fail`, and `--out <file>` also saves the Markdown. Logic lives in `scripts/a11y/` with tests in
+  `unit-tests/a11y/`.
 
 Before submitting changes, run type checking, lint (`npm run lint:fix` fixes what it can), formatting, unit tests and relevant browser tests (`npm run test:changed` runs only specs changed since the last commit). Never
 add fixture logic or raw UI interactions to specs merely to make a test pass. Search both symbolic

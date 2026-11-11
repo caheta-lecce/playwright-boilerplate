@@ -19,7 +19,8 @@ external account, database or server.
 - **Typed configuration**: environment variables are validated with [Zod](https://zod.dev) at
   startup, so a missing or malformed value fails fast with a clear message.
 - **Accessibility checks**: a `scanAxe()` fixture runs [axe-core](https://github.com/dequelabs/axe-core)
-  against WCAG 2.1 A/AA and attaches the full results to the report.
+  against WCAG 2.1 A/AA, attaches the full results to the report and saves them under
+  `reports/a11y/`, with `a11y:report` (Markdown + CSV) and `a11y:compare` (new / fixed / unchanged).
 - **Cross-browser**: Chromium, Firefox and WebKit by default.
 - **Quality tooling**: ESLint, Prettier, strict TypeScript, and a Husky pre-commit hook with
   lint-staged.
@@ -49,25 +50,27 @@ accessibility scan for each UI state.
 
 ## Scripts
 
-| Command                                          | What it does                                         |
-| ------------------------------------------------ | ---------------------------------------------------- |
-| `npm test`                                       | Run all tests in all browsers, except `@destructive` |
-| `npm run test:ci`                                | Like `npm test` plus `--forbid-only` (what CI runs)  |
-| `npm run test:changed` / `test:changed:main`     | Run only specs changed since `HEAD` / `main`         |
-| `npm run test:debug`                             | Run with the Playwright inspector (`--debug`)        |
-| `npm run test:smoke` / `test:regression`         | Run only the `@smoke` or `@regression` suite         |
-| `npm run test:destructive`                       | Run only the `@destructive` tests                    |
-| `npm run test:chromium` / `:firefox` / `:webkit` | Run tests in one browser                             |
-| `npm run test:headed`                            | Run tests with a visible browser                     |
-| `npm run test:ui`                                | Open Playwright UI mode                              |
-| `npm run test:list`                              | List tests without running them                      |
-| `npm run test:unit`                              | Run the `node:test` unit tests                       |
-| `npm run report`                                 | Open the last HTML report                            |
-| `npm run guidelines:check`                       | Check the mechanical repository guidelines           |
-| `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries            |
-| `npm run type:check`                             | Type-check with `tsc`                                |
-| `npm run lint` / `lint:fix`                      | Lint with ESLint, optionally applying fixes          |
-| `npm run format` / `format:check`                | Format, or check formatting, with Prettier           |
+| Command                                          | What it does                                           |
+| ------------------------------------------------ | ------------------------------------------------------ |
+| `npm test`                                       | Run all tests in all browsers, except `@destructive`   |
+| `npm run test:ci`                                | Like `npm test` plus `--forbid-only` (what CI runs)    |
+| `npm run test:changed` / `test:changed:main`     | Run only specs changed since `HEAD` / `main`           |
+| `npm run test:debug`                             | Run with the Playwright inspector (`--debug`)          |
+| `npm run test:smoke` / `test:regression`         | Run only the `@smoke` or `@regression` suite           |
+| `npm run test:destructive`                       | Run only the `@destructive` tests                      |
+| `npm run test:chromium` / `:firefox` / `:webkit` | Run tests in one browser                               |
+| `npm run test:headed`                            | Run tests with a visible browser                       |
+| `npm run test:ui`                                | Open Playwright UI mode                                |
+| `npm run test:list`                              | List tests without running them                        |
+| `npm run test:unit`                              | Run the `node:test` unit tests                         |
+| `npm run a11y:report`                            | Markdown + CSV of the latest axe run (`reports/a11y/`) |
+| `npm run a11y:compare -- <base> <head>`          | New / fixed / unchanged violations; exit 1 on new      |
+| `npm run report`                                 | Open the last HTML report                              |
+| `npm run guidelines:check`                       | Check the mechanical repository guidelines             |
+| `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries              |
+| `npm run type:check`                             | Type-check with `tsc`                                  |
+| `npm run lint` / `lint:fix`                      | Lint with ESLint, optionally applying fixes            |
+| `npm run format` / `format:check`                | Format, or check formatting, with Prettier             |
 
 ## Test tags
 

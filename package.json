@@ -25,6 +25,8 @@
     "test:list": "playwright test --list",
     "test:unit": "node --test \"unit-tests/**/*.test.mjs\"",
     "report": "playwright show-report",
+    "a11y:report": "node scripts/a11y-report.mjs",
+    "a11y:compare": "node scripts/a11y-compare.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type:check": "tsc --noEmit",

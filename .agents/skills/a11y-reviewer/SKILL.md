@@ -16,6 +16,9 @@ in context, along with the "Accessibility and verification" section of
   and attaches the full results to the report as `axe-<label>`.
 - Scans are explicit: nothing runs automatically. A spec must call `scanAxe` after reaching each
   UI state it wants covered.
+- Each scan is also saved to `reports/a11y/<runId>/<project>/<spec>--<label>.json` for
+  `npm run a11y:report` and `a11y:compare`; compare identifies a violation by rule, label, browser
+  and target, so renaming a label makes its old violations look fixed and new ones appear.
 - `a11yFailOnViolation` is an option fixture that defaults to `true`: any violation fails the test.
   Setting it to `false` (report-only) needs an explicit reason, per the guidelines.
 
@@ -36,7 +39,7 @@ on specs that reach a new UI state (new page, modal, form, validation message, c
    open, the error is shown, and so on) scans the wrong DOM. Flag scans placed too early.
 
 3. **Meaningful labels.** Each `scanAxe` label should name the state (`home`, `signed-out`,
-   `validation`), be unique within the test, and stay stable, since it names the report attachment.
+   `validation`), be unique within the test, and stay stable, since it names the report attachment and the on-disk result file.
 
 4. **Deliberate opt-outs are justified.** A spec that clearly doesn't need a scan (API-only checks,
    no UI state change) is fine — don't flag it. Flag omissions only when they look incidental.

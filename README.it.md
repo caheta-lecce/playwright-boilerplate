@@ -20,7 +20,8 @@ account esterni, database o server.
 - **Configurazione tipizzata**: le variabili d'ambiente sono validate con [Zod](https://zod.dev)
   all'avvio, quindi un valore mancante o non valido fallisce subito con un messaggio chiaro.
 - **Controlli di accessibilità**: la fixture `scanAxe()` esegue
-  [axe-core](https://github.com/dequelabs/axe-core) secondo WCAG 2.1 A/AA e allega i risultati
+  [axe-core](https://github.com/dequelabs/axe-core) secondo WCAG 2.1 A/AA, salva i risultati in
+  `reports/a11y/` (con `a11y:report` e `a11y:compare`) e allega i risultati
   completi al report.
 - **Multi-browser**: Chromium, Firefox e WebKit di default.
 - **Strumenti di qualità**: ESLint, Prettier, TypeScript in modalità strict e un hook pre-commit
@@ -66,6 +67,8 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | `npm run test:ui`                                | Apre la UI mode di Playwright                                    |
 | `npm run test:list`                              | Elenca i test senza eseguirli                                    |
 | `npm run test:unit`                              | Esegue gli unit test `node:test`                                 |
+| `npm run a11y:report`                            | Markdown + CSV dell'ultima run axe (`reports/a11y/`)             |
+| `npm run a11y:compare -- <base> <head>`          | Violazioni nuove / risolte / invariate; exit 1 se nuove          |
 | `npm run report`                                 | Apre l'ultimo report HTML                                        |
 | `npm run guidelines:check`                       | Verifica le linee guida controllabili in automatico              |
 | `npm run ai:skills:sync` / `ai:skills:check`     | Genera, o verifica, gli entry point delle skill AI               |

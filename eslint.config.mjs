@@ -14,6 +14,7 @@ export default defineConfig(
       'test-results/**',
       'playwright-report/**',
       'coverage/**',
+      'reports/**',
     ],
   },
   js.configs.recommended,
