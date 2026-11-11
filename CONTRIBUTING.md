@@ -29,6 +29,10 @@ After a run, `npm run a11y:report` turns the axe results in `reports/a11y/` into
 `issues.csv`, and `npm run a11y:compare -- <base> <head>` lists new, fixed and unchanged violations
 (exit 1 on new ones, `--no-fail` to disable; defaults `previous` and `latest`).
 
+On `ui-a11y-dast`, `npm run zap:run` runs the whole ZAP flow against a daemon you started, and
+`zap:diff` / `zap:findings:approve -- --reason "<text>"` compare and accept findings
+(`docs/zap/zap-proxy-scan.md`).
+
 `npm run test:ci` is `npm test` plus `--forbid-only`, as CI runs it (the config already sets
 `forbidOnly` when `CI` is set; the script makes the same check available locally). While working,
 `npm run test:changed` runs only specs changed since the last commit (`test:changed:main` against

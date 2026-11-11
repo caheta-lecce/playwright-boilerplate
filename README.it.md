@@ -76,6 +76,10 @@ tre i browser, con una scansione di accessibilità per ogni stato dell'interfacc
 | `npm run test:zap:headed`                        | Come sopra, con il browser visibile                              |
 | `npm run test:zap:no-proxy`                      | Esegue i journey ZAP senza proxy                                 |
 | `npm run zap:baseline`                           | Verifica ZAP rispetto alla baseline fissata                      |
+| `npm run zap:run`                                | Intero flusso ZAP: baseline, reset, journey, fetch, diff         |
+| `npm run zap:report:fetch`                       | Scarica gli alert ZAP correnti in `reports/zap/`                 |
+| `npm run zap:diff`                               | Nuovi finding vs accettati; exit 1 da `--min-risk`               |
+| `npm run zap:findings:approve -- --reason "..."` | Accetta i finding correnti, con motivo obbligatorio              |
 | `npm run zap:reset`                              | Azzera la sessione ZAP in esecuzione                             |
 | `npm run a11y:report`                            | Markdown + CSV dell'ultima run axe (`reports/a11y/`)             |
 | `npm run a11y:compare -- <base> <head>`          | Violazioni nuove / risolte / invariate; exit 1 se nuove          |
@@ -191,6 +195,12 @@ un'applicazione che hai il permesso di testare.
 2. Esegui `npm run test:zap`. Verifica ZAP rispetto alla baseline, azzera la sessione ZAP, poi
    lancia i journey attraverso il proxy.
 3. Apri il report di Playwright in `playwright-report/zap`.
+
+Per rivedere gli alert senza leggerli in ZAP, `npm run zap:run` esegue l'intero flusso (baseline,
+reset, journey, fetch, diff). `zap:diff` confronta gli alert con i finding accettati in
+`docs/zap/zap-accepted-findings.json` ed esce con 1 se ce ne sono di nuovi da `--min-risk` in su
+(default `low`); accetta un finding con `npm run zap:findings:approve -- --reason "<motivo>"`. Vedi
+[docs/zap/zap-proxy-scan.md](docs/zap/zap-proxy-scan.md).
 
 Per verificare che i journey funzionino senza un daemon ZAP, esegui `npm run test:zap:no-proxy` (o
 imposta `ZAP_PROXY=off`).

@@ -73,6 +73,10 @@ accessibility scan for each UI state.
 | `npm run test:zap:headed`                        | Same, with a visible browser                           |
 | `npm run test:zap:no-proxy`                      | Run the ZAP journeys with no proxy                     |
 | `npm run zap:baseline`                           | Check ZAP against the pinned baseline                  |
+| `npm run zap:run`                                | Whole ZAP flow: baseline, reset, journeys, fetch, diff |
+| `npm run zap:report:fetch`                       | Pull current ZAP alerts to `reports/zap/`              |
+| `npm run zap:diff`                               | New findings vs accepted; exit 1 at/above `--min-risk` |
+| `npm run zap:findings:approve -- --reason "..."` | Accept current findings, with a mandatory reason       |
 | `npm run zap:reset`                              | Clear the running ZAP session                          |
 | `npm run report`                                 | Open the last HTML report                              |
 | `npm run guidelines:check`                       | Check the mechanical repository guidelines             |
@@ -184,6 +188,12 @@ application you are allowed to test.
 2. Run `npm run test:zap`. It checks ZAP against the baseline, resets the ZAP session, then runs
    the journeys through the proxy.
 3. Open the Playwright report in `playwright-report/zap`.
+
+To review the alerts instead of reading them in ZAP, `npm run zap:run` does the whole flow (baseline,
+reset, journeys, fetch, diff). `zap:diff` compares the alerts with the accepted findings in
+`docs/zap/zap-accepted-findings.json` and exits 1 on new ones at or above `--min-risk` (default
+`low`); accept a finding with `npm run zap:findings:approve -- --reason "<why>"`. See
+[docs/zap/zap-proxy-scan.md](docs/zap/zap-proxy-scan.md).
 
 To check that the journeys work without a ZAP daemon, run `npm run test:zap:no-proxy` (or set
 `ZAP_PROXY=off`).

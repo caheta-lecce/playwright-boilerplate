@@ -78,6 +78,15 @@ and follows call order, so each test generates and uses its own value and never 
 another test produced. Constrain generated values to what the UI accepts (e.g. letters and one
 space) so they cannot make a test flaky.
 
+## ZAP findings
+
+`docs/zap/zap-baseline.json` pins the ZAP version, add-ons and rule configuration; it never holds
+findings. Findings the team has reviewed and accepted live in `docs/zap/zap-accepted-findings.json`,
+written only through `npm run zap:findings:approve -- --reason "<text>"` (a reason is mandatory) and
+reviewed through its diff. `npm run zap:diff` fails on new findings at or above `--min-risk`
+(default `low`); never weaken that threshold or accept findings in bulk to get green. The logic is in
+`scripts/zap/`; see `docs/zap/zap-proxy-scan.md`.
+
 ## Structure
 
 - `lib/fixtures/`: shared fixture modules composed with `mergeTests()`.
