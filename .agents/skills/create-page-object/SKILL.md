@@ -76,7 +76,7 @@ Add the page object to `lib/fixtures/page-fixture.ts`. Specs receive it by name 
 Under `src/tests/ui/<domain>/`, import `test` and `expect` from `@fixtures/base`. Drive the flow
 through `<page>.do.*`, assert through `<page>.on.*`. Give every test exactly one suite tag,
 `test('title', { tag: '@smoke' }, ...)` or `'@regression'` (plus `'@destructive'` if it changes
-shared data). Read users and settings from `src/config/`, never literals. For a signed-out state, use `test.use({ storageState: { cookies: [], origins: [] } })`.
+shared data). Read users and settings from `src/config/`, never literals. Needing a unique or realistic value? Add a typed factory to `src/data/<domain>.data.ts` using `@faker-js/faker` (seeded; see "Generated test data" in the guidelines) and call it from the spec; never import faker in a spec. For a signed-out state, use `test.use({ storageState: { cookies: [], origins: [] } })`.
 
 ### 7. Verify
 
@@ -84,6 +84,7 @@ shared data). Read users and settings from `src/config/`, never literals. For a 
 npm run type:check
 npm run lint
 npx playwright test src/tests/ui/<domain>/ --repeat-each=3
+npm run test:ci   # also fails on a stray test.only
 ```
 
 Then apply the `pom-reviewer` skill to the new files — in a subagent if your tool supports

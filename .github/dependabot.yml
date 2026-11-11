@@ -5,10 +5,23 @@ updates:
     schedule:
       interval: weekly
     groups:
+      # Minor and patch updates of dev dependencies arrive as one PR; majors stay individual PRs.
       dev-dependencies:
         dependency-type: development
+        update-types: [minor, patch]
+    ignore:
+      # The repository targets Node 22 (see .nvmrc and engines), so @types/node stays on 22.x.
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
+      # typescript-eslint 8.x declares peer `typescript >=4.8.4 <6.1.0`, so TypeScript 7 breaks
+      # `npm ci` (ERESOLVE). Remove this ignore once typescript-eslint supports it.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
     open-pull-requests-limit: 5
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns: ['*']

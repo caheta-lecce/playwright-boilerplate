@@ -25,6 +25,13 @@ npm run ai:skills:check
 npm test
 ```
 
+`npm run test:ci` is `npm test` plus `--forbid-only`, as CI runs it (the config already sets
+`forbidOnly` when `CI` is set; the script makes the same check available locally). While working,
+`npm run test:changed` runs only specs changed since the last commit (`test:changed:main` against
+`main`; the auth setup still runs because spec projects depend on it), `npm run test:debug` opens the
+Playwright inspector and `npm run lint:fix` applies ESLint fixes. File names are checked by lint, see
+"File naming" in the guidelines.
+
 `npm test` skips `@destructive` tests. Every test carries exactly one suite tag (`@smoke` or
 `@regression`); run one suite with `npm run test:smoke` or `npm run test:regression`.
 

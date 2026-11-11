@@ -58,6 +58,25 @@ from the list. When adopting the template, extend these tables with the project'
 | **No self-edited guards** | An agent never edits the files that enforce these rules: `.claude/scripts/**`, `.claude/settings.json`, `scripts/guideline-rules.mjs`, `scripts/check-guidelines.mjs` and `.husky/**`. The Claude Code hook blocks such writes; a human makes the change, or relaunches the agent with `ALLOW_GUARD_EDITS=1` set outside it. |
 | **No loosened contracts** | Never loosen a schema or expected status to make a test green; record the discrepancy and link its issue. |
 
+## File naming
+
+`eslint-plugin-check-file` enforces file and folder names (`npm run lint`); identifier naming stays
+in `eslint-rules/name-convention.js`, so the two do not overlap.
+
+- `src/pages/**`: PascalCase `<Name>Locators.ts`, `<Name>Actions.ts` or `<Name>Page.ts`.
+- `src/data/**`: kebab-case `<domain>.data.ts`.
+- `src/tests/**`: kebab-case `<name>.spec.ts`, or `<name>.ui.setup.ts` for setup projects.
+- `lib/fixtures/*`: kebab-case; every folder under `src/` and `lib/` is kebab-case.
+
+## Generated test data
+
+Generate values with `@faker-js/faker` only inside `src/data/<domain>.data.ts` (a typed factory such
+as `buildDisplayName()`); specs call the factory and never import faker. Output is seeded: the default
+seed is fixed, and `TEST_DATA_SEED=<number>` replays another sequence. The sequence is per worker
+and follows call order, so each test generates and uses its own value and never relies on a value
+another test produced. Constrain generated values to what the UI accepts (e.g. letters and one
+space) so they cannot make a test flaky.
+
 ## Structure
 
 - `lib/fixtures/`: shared fixture modules composed with `mergeTests()`.
@@ -104,6 +123,6 @@ to hide application defects. Record the discrepancy and link its tracking issue.
 
 ## Verification
 
-Before submitting changes, run type checking, lint, formatting, unit tests and relevant browser tests. Never
+Before submitting changes, run type checking, lint (`npm run lint:fix` fixes what it can), formatting, unit tests and relevant browser tests (`npm run test:changed` runs only specs changed since the last commit). Never
 add fixture logic or raw UI interactions to specs merely to make a test pass. Search both symbolic
 and raw values before renaming enums or data constants.

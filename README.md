@@ -49,6 +49,9 @@ example specs (session reuse, sign-out and form validation) in all three browser
 | Command                                          | What it does                                         |
 | ------------------------------------------------ | ---------------------------------------------------- |
 | `npm test`                                       | Run all tests in all browsers, except `@destructive` |
+| `npm run test:ci`                                | Like `npm test` plus `--forbid-only` (what CI runs)  |
+| `npm run test:changed` / `test:changed:main`     | Run only specs changed since `HEAD` / `main`         |
+| `npm run test:debug`                             | Run with the Playwright inspector (`--debug`)        |
 | `npm run test:smoke` / `test:regression`         | Run only the `@smoke` or `@regression` suite         |
 | `npm run test:destructive`                       | Run only the `@destructive` tests                    |
 | `npm run test:chromium` / `:firefox` / `:webkit` | Run tests in one browser                             |
@@ -60,7 +63,7 @@ example specs (session reuse, sign-out and form validation) in all three browser
 | `npm run guidelines:check`                       | Check the mechanical repository guidelines           |
 | `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries            |
 | `npm run type:check`                             | Type-check with `tsc`                                |
-| `npm run lint`                                   | Lint with ESLint                                     |
+| `npm run lint` / `lint:fix`                      | Lint with ESLint, optionally applying fixes          |
 | `npm run format` / `format:check`                | Format, or check formatting, with Prettier           |
 
 ## Test tags
@@ -187,6 +190,10 @@ by hand.
 For Claude Code, `.claude/settings.json` also adds two hooks: one blocks edits that break
 mechanically checkable guidelines (such as XPath selectors), the other lints and formats each
 TypeScript file after it is written. It also stops the assistant from reading or editing `.env`.
+
+## Licence
+
+MIT, see [LICENSE](LICENSE).
 
 ## Conventions
 
