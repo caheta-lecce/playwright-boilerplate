@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { environment } from '@config/environments';
 import { storageStatePath } from '@lib/auth';
+import { sauceDemoBaseUrl } from '@data/sauce-demo.data';
 
 const browsers = [
   { name: 'chromium', device: 'Desktop Chrome' },
@@ -12,8 +13,18 @@ const browsers = [
 // setup projects: a CLI `--grep` would also filter out the auth setup tests that specs depend on.
 const suiteGrep = process.env.TEST_GREP ? new RegExp(process.env.TEST_GREP) : undefined;
 
+// One run id for the whole run: workers inherit it, so every axe result lands in the same
+// reports/a11y/<runId>/ folder (sortable UTC timestamp; set A11Y_RUN_ID to choose your own).
+process.env['A11Y_RUN_ID'] ??= new Date().toISOString().replace(/[:.]/g, '-');
+
+// Report-only axe scans of an external site: own project, no auth setup, no storage state, and the
+// example-app browser projects above skip it.
+const sauceDemoSpecs = /[\\/]ui[\\/]sauce-demo[\\/].*\.spec\.ts$/;
+
 export default defineConfig({
   testDir: './src/tests',
+  // ZAP journeys need a ZAP daemon; they run through playwright.zap.config.ts (npm run test:zap).
+  testIgnore: '**/security/zap/**',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -28,14 +39,22 @@ export default defineConfig({
           reuseExistingServer: false,
         }
       : undefined,
-  projects: browsers.flatMap(({ name, device }) => [
-    { name: `${name}-setup`, testMatch: /auth\.ui\.setup\.ts/, use: { ...devices[device] } },
+  projects: [
     {
-      name,
-      testMatch: /\.spec\.ts$/,
-      dependencies: [`${name}-setup`],
-      grep: suiteGrep,
-      use: { ...devices[device], storageState: storageStatePath(name) },
+      name: 'sauce-demo-chromium',
+      testMatch: sauceDemoSpecs,
+      use: { ...devices['Desktop Chrome'], baseURL: sauceDemoBaseUrl },
     },
-  ]),
+    ...browsers.flatMap(({ name, device }) => [
+      { name: `${name}-setup`, testMatch: /auth\.ui\.setup\.ts/, use: { ...devices[device] } },
+      {
+        name,
+        testMatch: /\.spec\.ts$/,
+        testIgnore: sauceDemoSpecs,
+        dependencies: [`${name}-setup`],
+        grep: suiteGrep,
+        use: { ...devices[device], storageState: storageStatePath(name) },
+      },
+    ]),
+  ],
 });

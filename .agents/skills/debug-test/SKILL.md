@@ -29,6 +29,7 @@ Read `playwright.config.ts` to confirm the current values. By default:
 | Trace       | `retain-on-failure`  | `test-results/<test>/trace.zip` |
 | Screenshot  | `only-on-failure`    | `test-results/<test>/*.png`     |
 | HTML report | always, never opened | `playwright-report/index.html`  |
+| axe results | per `scanAxe(label)` | report attachment `axe-<label>` |
 
 Retries are `2` in CI and `0` locally, so a test that passes on retry in CI is flaky, not fixed.
 
@@ -42,18 +43,19 @@ Most failures can be diagnosed here.
 
 ### 2. Classify the failure
 
-| Symptom                                                  | Likely cause                                                        | Where to look                                                                              |
-| -------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Timeout on an **action** (`locator.click`)               | Wrong locator, element disabled or covered, page not loaded         | Trace Viewer: DOM snapshot at the timeout                                                  |
-| Timeout on an **assertion** (`toBeVisible`)              | Element legitimately absent, wrong locator, race with navigation    | UI Mode: step just before the assertion                                                    |
-| Timeout on **navigation** (`page.goto`)                  | Wrong `BASE_URL`, app down, environment not set                     | Check `.env` / `ENV` / `BASE_URL`; open the URL manually                                   |
-| **Strict mode violation**: resolved to N elements        | Locator too loose                                                   | Scope to a parent, use a more specific role or name, or `{ exact: true }`                  |
-| **Expected "X", received "Y"**                           | Page state, test data or UI copy changed                            | Compare values; if a shared value changed, use the `safe-rename` skill                     |
-| **ZodError**                                             | Configuration or API response doesn't match the schema              | Configuration: fix the env value. API: check the contract before changing the schema       |
-| `ECONNREFUSED`, `ENOTFOUND`, 5xx                         | Wrong base URL, service down, missing credentials                   | Environment and credentials, not the test                                                  |
-| `undefined` fixture, `cannot read property of undefined` | Page object not registered, `test` imported from `@playwright/test` | `lib/fixtures/page-fixture.ts`, `lib/fixtures/base.ts`; specs import from `@fixtures/base` |
-| Setup project failed, every dependent test skipped       | Login flow broken or storage state not saved                        | Run the `<browser>-setup` project alone and read its trace                                 |
-| Passes alone, fails in the full suite                    | Shared state between tests, parallel collision on the same account  | Make the test independent; use one account per worker for state-changing tests             |
+| Symptom                                                   | Likely cause                                                        | Where to look                                                                              |
+| --------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Timeout on an **action** (`locator.click`)                | Wrong locator, element disabled or covered, page not loaded         | Trace Viewer: DOM snapshot at the timeout                                                  |
+| Timeout on an **assertion** (`toBeVisible`)               | Element legitimately absent, wrong locator, race with navigation    | UI Mode: step just before the assertion                                                    |
+| Timeout on **navigation** (`page.goto`)                   | Wrong `BASE_URL`, app down, environment not set                     | Check `.env` / `ENV` / `BASE_URL`; open the URL manually                                   |
+| **Strict mode violation**: resolved to N elements         | Locator too loose                                                   | Scope to a parent, use a more specific role or name, or `{ exact: true }`                  |
+| **Expected "X", received "Y"**                            | Page state, test data or UI copy changed                            | Compare values; if a shared value changed, use the `safe-rename` skill                     |
+| **ZodError**                                              | Configuration or API response doesn't match the schema              | Configuration: fix the env value. API: check the contract before changing the schema       |
+| `ECONNREFUSED`, `ENOTFOUND`, 5xx                          | Wrong base URL, service down, missing credentials                   | Environment and credentials, not the test                                                  |
+| `undefined` fixture, `cannot read property of undefined`  | Page object not registered, `test` imported from `@playwright/test` | `lib/fixtures/page-fixture.ts`, `lib/fixtures/base.ts`; specs import from `@fixtures/base` |
+| Setup project failed, every dependent test skipped        | Login flow broken or storage state not saved                        | Run the `<browser>-setup` project alone and read its trace                                 |
+| Passes alone, fails in the full suite                     | Shared state between tests, parallel collision on the same account  | Make the test independent; use one account per worker for state-changing tests             |
+| Accessibility: `Accessibility: <label>` expectation fails | axe found violations                                                | Open the `axe-<label>` attachment; fix the markup or the flow, don't disable the scan      |
 
 ### 3. Reproduce narrowly
 
@@ -78,7 +80,7 @@ If it passes locally but fails in CI, go to step 5.
   trace, including one downloaded from CI.
 - **Headed run** (`npm run test:headed -- <spec path>`) or `--debug` for the Inspector — to watch or
   step through a single test.
-- **HTML report** (`npm run report`) — screenshots and traces for every failure.
+- **HTML report** (`npm run report`) — screenshots, traces and axe attachments for every failure.
 
 ### 5. CI-only failures
 

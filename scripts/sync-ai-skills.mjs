@@ -31,6 +31,7 @@ const MARKER_LINE = `<!-- ${GENERATED_MARKER} from the canonical skill. Do not e
 // review is independent of the session that wrote the code. Other tools run the skill inline.
 const CLAUDE_SUBAGENTS = {
   'pom-reviewer': 'Read, Grep, Glob, Bash',
+  'a11y-reviewer': 'Read, Grep, Glob, Bash',
 };
 
 // Agent Skills spec limits: https://agentskills.io/specification

@@ -31,6 +31,7 @@ from the list. When adopting the template, extend these tables with the project'
 | **Test tags** | Every test in a UI spec carries exactly one suite tag through Playwright's options, `test('title', { tag: '@smoke' }, ...)` or `{ tag: '@regression' }`, and optionally `'@destructive'` (`{ tag: ['@regression', '@destructive'] }`) when it changes shared data. `npm test` and the per-browser scripts skip `@destructive`; `npm run test:smoke`, `test:regression` and `test:destructive` run one tag through `scripts/run-suite.mjs`, which filters only the spec projects so the auth setup still runs (a CLI `--grep` would filter it out). Hook: `spec-missing-suite-tag`. |
 | **Exact Playwright pin** | `@playwright/test` is pinned to an exact version (no `^` or `~`) and the CI image tag in `.github/workflows/ci.yml` equals it; test a new version first, then bump both in one PR (`npm run playwright:image:check`). |
 | **Auth reuse** | Specs reuse the storage state saved by the setup project; only login specs log in inline. |
+| **Accessibility** | Call `scanAxe(label)` after reaching each meaningful UI state. |
 | **Close review gaps** | When a review (human or AI) flags a violation that the rules or hooks let through, the same change also closes the gap: tighten the matching Constitution row or section, or add a new one, and add a rule to `scripts/guideline-rules.mjs` (with a case in `unit-tests/guidelines/`) when it can be checked mechanically with near-zero false positives (existing offenders go in `KNOWN_VIOLATIONS`). If a rule only states the requirement, the next review will just flag the same thing again. |
 | **Verification** | Changed code passes `npm run type:check`, `npm run lint`, `npm run format:check`, and `npm run test:unit`, and affected specs are run before the work is called done. |
 
@@ -82,6 +83,7 @@ space) so they cannot make a test flaky.
 
 - `lib/fixtures/`: shared fixture modules composed with `mergeTests()`.
 - `lib/auth/`: storage-state paths and setup helpers.
+- `lib/a11y/`: on-disk axe result shape and writer.
 - `lib/api/`: HTTP constants.
 - `lib/reporting/`: failure classifications (`FAILURE_REASONS`) and their types.
 - `src/config/schemas/`: Zod-validated environment and user configuration.
@@ -122,7 +124,25 @@ Required fields are not optional; nullable fields use `.nullable()`. Export sche
 types. Add aliases and barrel exports when introducing those directories. Do not loosen contracts
 to hide application defects. Record the discrepancy and link its tracking issue.
 
-## Verification
+## Accessibility and verification
+
+Use `scanAxe(label)` from the shared fixture after reaching each meaningful UI state. The template
+fails on violations and attaches full axe results. A report-only exception needs an explicit reason.
+Automated checks do not replace manual accessibility testing.
+
+Every scan is also written to disk, git-ignored, as
+`reports/a11y/<runId>/<project>/<spec>--<label>.json` (shape `A11yScanFile` in
+`lib/a11y/results.ts`: rule id, impact, help URL and node targets per violation). The run id is a
+sortable UTC timestamp fixed once in `playwright.config.ts` (override with `A11Y_RUN_ID`), and each
+scan owns its file, so parallel workers and the three browsers never overwrite each other.
+Because labels name the files and identify a violation across runs, keep them stable.
+
+- `npm run a11y:report [-- <run|latest|folder>]` writes `summary.md` and `issues.csv` (Excel-ready)
+  into the run folder, grouped by rule, impact, page/state and browser, de-duplicated.
+- `npm run a11y:compare -- <base> <head>` (defaults `previous` and `latest`) lists new, fixed and
+  unchanged violations by rule, state, browser and target; it exits 1 on new violations unless
+  `--no-fail`, and `--out <file>` also saves the Markdown. Logic lives in `scripts/a11y/` with tests in
+  `unit-tests/a11y/`.
 
 Before submitting changes, run type checking, lint (`npm run lint:fix` fixes what it can), formatting, unit tests and relevant browser tests (`npm run test:changed` runs only specs changed since the last commit). Never
 add fixture logic or raw UI interactions to specs merely to make a test pass. Search both symbolic

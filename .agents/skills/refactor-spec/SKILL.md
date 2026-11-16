@@ -79,6 +79,10 @@ changing it (the `pom-reviewer` skill does that).
 12. Keep each test's suite tag (`@smoke` / `@regression`, optional `@destructive`) through the
     refactor; a test that has none gets exactly one, chosen with the developer.
 
+13. If the spec reaches UI states that deserve an accessibility scan and doesn't have one, flag it
+    to the developer rather than adding it silently. Apply the `a11y-reviewer` skill
+    (`.agents/skills/a11y-reviewer/SKILL.md`) the same way for that check.
+
 ## Common pitfalls
 
 - Don't invent a new page object when an existing one already owns the DOM you're touching —

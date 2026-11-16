@@ -1,0 +1,175 @@
+name: A11y Sauce baseline and compare
+# Runs on pushes to ui-a11y and manually. `baseline` scans the public Sauce demo store and keeps the result as the a11y-baseline
+# artifact; `compare` scans again, pretends the rules in `simulate_fixed` were fixed, and compares
+# with the latest baseline (Excel + HTML report, counts in the job summary).
+on:
+  push:
+    branches: [ui-a11y]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: baseline = store a new baseline, compare = scan again and compare with it
+        type: choice
+        options: [baseline, compare]
+        default: baseline
+      simulate_fixed:
+        description: Comma-separated axe rule ids to pretend were fixed (compare mode only)
+        type: string
+        default: color-contrast
+      fail_on_new:
+        description: Fail the run when the comparison finds new violations (compare mode only)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read # download the baseline artifact of an earlier run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Same pinned image as ci.yml: the tag must equal @playwright/test (npm run playwright:image:check).
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble
+      options: --user 1001
+    env:
+      A11Y_RUN_ID: ci-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # compare: downloaded into its own folder (only what came from the artifact), then moved next to the new run.
+      - name: Download the latest baseline
+        # Skipped only when this run is known to be a baseline (dispatch baseline, or a push whose
+        # head commit says [a11y-baseline]).
+        if: ${{ inputs.mode == 'compare' || (github.event_name == 'push' && !contains(github.event.head_commit.message, '[a11y-baseline]')) }}
+        uses: dawidd6/action-download-artifact@a92c7ae74cf1df8810783758581e485ac3aaa309 # v28
+        with:
+          workflow: a11y-sauce.yml
+          workflow_conclusion: success
+          name: a11y-baseline
+          path: reports/a11y-baseline-dl
+          # Without this the action only inspects the latest successful run, which after a compare
+          # run has no a11y-baseline artifact.
+          search_artifacts: true
+          if_no_artifact_found: warn
+
+      - name: Resolve mode
+        id: mode
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_SIMULATE: ${{ inputs.simulate_fixed }}
+          INPUT_FAIL: ${{ inputs.fail_on_new }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          HAS_BASELINE=false
+          if [ -n "$(ls -A reports/a11y-baseline-dl 2>/dev/null)" ]; then HAS_BASELINE=true; fi
+          SIMULATE="color-contrast"
+          FAIL="false"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            MODE="$INPUT_MODE"
+            SIMULATE="$INPUT_SIMULATE"
+            FAIL="$INPUT_FAIL"
+            WHY="manual run, mode input"
+            if [ "$MODE" = "compare" ] && [ "$HAS_BASELINE" != "true" ]; then
+              echo "::error::No a11y-baseline artifact found. Run once with mode=baseline first."
+              exit 1
+            fi
+          elif printf '%s' "$COMMIT_MESSAGE" | grep -qF '[a11y-baseline]'; then
+            MODE=baseline
+            WHY="push with the [a11y-baseline] marker in the head commit"
+          elif [ "$HAS_BASELINE" = "true" ]; then
+            MODE=compare
+            WHY="push, and a baseline artifact exists"
+          else
+            MODE=baseline
+            WHY="push, and no baseline artifact exists yet (first run creates it)"
+          fi
+          {
+            echo "mode=$MODE"
+            echo "simulate_fixed=$SIMULATE"
+            echo "fail_on_new=$FAIL"
+          } >> "$GITHUB_OUTPUT"
+          printf '**a11y-sauce mode: %s** (%s)\n\n' "$MODE" "$WHY" >> "$GITHUB_STEP_SUMMARY"
+
+      # The specs fail on purpose when the store has violations (aggregate step). The scan steps are
+      # continue-on-error so the job still succeeds: a successful run is what later compares find a
+      # baseline in. Only fail_on_new gates the job.
+      - name: Scan the baseline
+        id: scan_baseline
+        continue-on-error: true
+        if: ${{ steps.mode.outputs.mode == 'baseline' }}
+        # Set to empty on purpose: a baseline never simulates fixes.
+        env:
+          A11Y_SIMULATE_FIXED: ''
+        run: npm run test:a11y:sauce
+
+      - name: Scan with simulated fixes
+        id: scan_compare
+        continue-on-error: true
+        if: ${{ steps.mode.outputs.mode == 'compare' }}
+        env:
+          A11Y_SIMULATE_FIXED: ${{ steps.mode.outputs.simulate_fixed }}
+        run: npm run test:a11y:sauce
+
+      - name: Summarise the scans
+        env:
+          SCAN_OUTCOME: ${{ steps.scan_baseline.outcome }}${{ steps.scan_compare.outcome }}
+        run: |
+          SCANS=$(find "reports/a11y/$A11Y_RUN_ID" -name '*.json' | wc -l)
+          if [ "$SCANS" -eq 0 ]; then
+            echo "::error::No scan files were written: the flows did not reach any scan (site down or UI changed)."
+            exit 1
+          fi
+          if echo "$SCAN_OUTCOME" | grep -q failure; then
+            NOTE="Playwright reported failing tests: expected, the aggregate a11y check fails when the store has violations."
+          else
+            NOTE="All scan tests passed (no violations)."
+          fi
+          printf '%s scan file(s) written. %s\n\n' "$SCANS" "$NOTE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build the baseline reports
+        if: ${{ steps.mode.outputs.mode == 'baseline' }}
+        run: npm run a11y:compare:report -- "$A11Y_RUN_ID"
+
+      - name: Compare with the baseline
+        if: ${{ steps.mode.outputs.mode == 'compare' }}
+        env:
+          FAIL_ON_NEW: ${{ steps.mode.outputs.fail_on_new }}
+        run: |
+          BASE_ID=$(ls reports/a11y-baseline-dl | sort | tail -n 1)
+          mkdir -p reports/a11y
+          mv "reports/a11y-baseline-dl/$BASE_ID" reports/a11y/
+          echo "Baseline run: $BASE_ID"
+          FLAGS=""
+          if [ "$FAIL_ON_NEW" = "true" ]; then FLAGS="--fail-on-new"; fi
+          npm run a11y:compare:report -- "$BASE_ID" "$A11Y_RUN_ID" $FLAGS
+
+      - name: Upload the baseline
+        if: ${{ !cancelled() && steps.mode.outputs.mode == 'baseline' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-baseline
+          path: reports/a11y
+          retention-days: 90
+      - name: Upload the comparison
+        if: ${{ !cancelled() && steps.mode.outputs.mode == 'compare' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-compare
+          path: reports/a11y/${{ env.A11Y_RUN_ID }}
+          retention-days: 30
+      - name: Upload the Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-sauce
+          path: playwright-report/
+          retention-days: 7
