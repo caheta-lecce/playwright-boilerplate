@@ -23,6 +23,8 @@ const sauceDemoSpecs = /[\\/]ui[\\/]sauce-demo[\\/].*\.spec\.ts$/;
 
 export default defineConfig({
   testDir: './src/tests',
+  // ZAP journeys need a ZAP daemon; they run through playwright.zap.config.ts (npm run test:zap).
+  testIgnore: '**/security/zap/**',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

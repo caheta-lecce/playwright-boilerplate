@@ -101,7 +101,7 @@ one rule in one labelled state.
 The manual workflow [`a11y-sauce.yml`](.github/workflows/a11y-sauce.yml) automates this in CI. Inputs:
 `mode` (`baseline` stores the `a11y-baseline` artifact for 90 days; `compare` downloads the latest
 baseline, re-scans and uploads `a11y-compare`), `simulate_fixed` (rule ids, default `color-contrast`)
-and `fail_on_new` (default false). The fixed counts appear in the job summary. `npm test` and the
+and `fail_on_new` (default false). The workflow also runs on every push to `ui-a11y`: the first push (no baseline artifact yet) creates the baseline; later pushes compare against the latest baseline with `color-contrast` simulated fixed. Put `[a11y-baseline]` in the head commit message to store a fresh baseline instead. A manual `compare` with no baseline fails with a clear message. The fixed counts appear in the job summary. `npm test` and the
 suites cover only the example projects, so they never scan the external site.
 
 ## Test tags

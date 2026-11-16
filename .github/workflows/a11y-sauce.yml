@@ -1,8 +1,10 @@
 name: A11y Sauce baseline and compare
-# Manual only. `baseline` scans the public Sauce demo store and keeps the result as the a11y-baseline
+# Runs on pushes to ui-a11y and manually. `baseline` scans the public Sauce demo store and keeps the result as the a11y-baseline
 # artifact; `compare` scans again, pretends the rules in `simulate_fixed` were fixed, and compares
 # with the latest baseline (Excel + HTML report, counts in the job summary).
 on:
+  push:
+    branches: [ui-a11y]
   workflow_dispatch:
     inputs:
       mode:
@@ -44,7 +46,9 @@ jobs:
 
       # compare: downloaded into its own folder (only what came from the artifact), then moved next to the new run.
       - name: Download the latest baseline
-        if: ${{ inputs.mode == 'compare' }}
+        # Skipped only when this run is known to be a baseline (dispatch baseline, or a push whose
+        # head commit says [a11y-baseline]).
+        if: ${{ inputs.mode == 'compare' || (github.event_name == 'push' && !contains(github.event.head_commit.message, '[a11y-baseline]')) }}
         uses: dawidd6/action-download-artifact@a92c7ae74cf1df8810783758581e485ac3aaa309 # v28
         with:
           workflow: a11y-sauce.yml
@@ -54,29 +58,68 @@ jobs:
           # Without this the action only inspects the latest successful run, which after a compare
           # run has no a11y-baseline artifact.
           search_artifacts: true
-          if_no_artifact_found: fail
+          if_no_artifact_found: warn
+
+      - name: Resolve mode
+        id: mode
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_SIMULATE: ${{ inputs.simulate_fixed }}
+          INPUT_FAIL: ${{ inputs.fail_on_new }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          HAS_BASELINE=false
+          if [ -n "$(ls -A reports/a11y-baseline-dl 2>/dev/null)" ]; then HAS_BASELINE=true; fi
+          SIMULATE="color-contrast"
+          FAIL="false"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            MODE="$INPUT_MODE"
+            SIMULATE="$INPUT_SIMULATE"
+            FAIL="$INPUT_FAIL"
+            WHY="manual run, mode input"
+            if [ "$MODE" = "compare" ] && [ "$HAS_BASELINE" != "true" ]; then
+              echo "::error::No a11y-baseline artifact found. Run once with mode=baseline first."
+              exit 1
+            fi
+          elif printf '%s' "$COMMIT_MESSAGE" | grep -qF '[a11y-baseline]'; then
+            MODE=baseline
+            WHY="push with the [a11y-baseline] marker in the head commit"
+          elif [ "$HAS_BASELINE" = "true" ]; then
+            MODE=compare
+            WHY="push, and a baseline artifact exists"
+          else
+            MODE=baseline
+            WHY="push, and no baseline artifact exists yet (first run creates it)"
+          fi
+          {
+            echo "mode=$MODE"
+            echo "simulate_fixed=$SIMULATE"
+            echo "fail_on_new=$FAIL"
+          } >> "$GITHUB_OUTPUT"
+          printf '**a11y-sauce mode: %s** (%s)\n\n' "$MODE" "$WHY" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Scan the baseline
-        if: ${{ inputs.mode == 'baseline' }}
+        if: ${{ steps.mode.outputs.mode == 'baseline' }}
         # Set to empty on purpose: a baseline never simulates fixes.
         env:
           A11Y_SIMULATE_FIXED: ''
         run: npm run test:a11y:sauce
 
       - name: Scan with simulated fixes
-        if: ${{ inputs.mode == 'compare' }}
+        if: ${{ steps.mode.outputs.mode == 'compare' }}
         env:
-          A11Y_SIMULATE_FIXED: ${{ inputs.simulate_fixed }}
+          A11Y_SIMULATE_FIXED: ${{ steps.mode.outputs.simulate_fixed }}
         run: npm run test:a11y:sauce
 
       - name: Build the baseline reports
-        if: ${{ inputs.mode == 'baseline' }}
+        if: ${{ steps.mode.outputs.mode == 'baseline' }}
         run: npm run a11y:compare:report -- "$A11Y_RUN_ID"
 
       - name: Compare with the baseline
-        if: ${{ inputs.mode == 'compare' }}
+        if: ${{ steps.mode.outputs.mode == 'compare' }}
         env:
-          FAIL_ON_NEW: ${{ inputs.fail_on_new }}
+          FAIL_ON_NEW: ${{ steps.mode.outputs.fail_on_new }}
         run: |
           BASE_ID=$(ls reports/a11y-baseline-dl | sort | tail -n 1)
           mkdir -p reports/a11y
@@ -87,14 +130,14 @@ jobs:
           npm run a11y:compare:report -- "$BASE_ID" "$A11Y_RUN_ID" $FLAGS
 
       - name: Upload the baseline
-        if: ${{ !cancelled() && inputs.mode == 'baseline' }}
+        if: ${{ !cancelled() && steps.mode.outputs.mode == 'baseline' }}
         uses: actions/upload-artifact@v7
         with:
           name: a11y-baseline
           path: reports/a11y
           retention-days: 90
       - name: Upload the comparison
-        if: ${{ !cancelled() && inputs.mode == 'compare' }}
+        if: ${{ !cancelled() && steps.mode.outputs.mode == 'compare' }}
         uses: actions/upload-artifact@v7
         with:
           name: a11y-compare

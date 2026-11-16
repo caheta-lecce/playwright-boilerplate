@@ -22,6 +22,7 @@
   },
   "include": [
     "playwright.config.ts",
+    "playwright.zap.config.ts",
     "lib/**/*.ts",
     "src/**/*.ts",
     "scripts/**/*.ts",
