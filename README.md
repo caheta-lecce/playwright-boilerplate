@@ -23,7 +23,7 @@ external account, database or server.
   `reports/a11y/`, with `a11y:report` (Markdown + CSV) and `a11y:compare` (new / fixed / unchanged).
   `a11y:report:xlsx` writes an Excel workbook (set `A11Y_SPRINT` to fill its Sprint column). The
   `sauce-demo-chromium` project scans the public Sauce demo store (`src/tests/ui/sauce-demo/`) in
-  report-only mode: no auth setup, `npm run test:a11y:sauce` then `npm run a11y:report:xlsx`.
+  aggregate mode (every state is scanned, then one step fails the test naming all violating states): no auth setup, `npm run test:a11y:sauce` (expected to fail on the live store) then `npm run a11y:report:xlsx`; the reports work on a failing run.
   `a11y:compare:report` compares two runs (see [Baseline and compare](#baseline-and-compare-a11y)).
   The Excel script is TypeScript run by Node's native type stripping (Node 22.18+).
 - **Cross-browser**: Chromium, Firefox and WebKit by default.
@@ -72,7 +72,7 @@ accessibility scan for each UI state.
 | `npm run a11y:compare -- <base> <head>`          | New / fixed / unchanged violations; exit 1 on new                  |
 | `npm run a11y:report:xlsx [-- <run> --out <f>]`  | Excel report (Summary + Violations) of an axe run                  |
 | `npm run a11y:compare:report -- <base> <head>`   | Excel + HTML comparison of two axe runs (Fixed / Still open / New) |
-| `npm run test:a11y:sauce`                        | Report-only axe scans of the external Sauce demo store             |
+| `npm run test:a11y:sauce`                        | Axe scans of the external Sauce demo store (fails on violations)   |
 | `npm run report`                                 | Open the last HTML report                                          |
 | `npm run guidelines:check`                       | Check the mechanical repository guidelines                         |
 | `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries                          |
@@ -91,6 +91,10 @@ A11Y_RUN_ID=local-baseline npm run test:a11y:sauce
 A11Y_RUN_ID=local-head A11Y_SIMULATE_FIXED=color-contrast npm run test:a11y:sauce
 npm run a11y:compare:report -- local-baseline local-head [--fail-on-new] [--out-dir <dir>]
 ```
+
+The sauce specs record every scan with `trackA11yScan` (`lib/a11y/findings.ts`) and end with one
+`expectNoAccessibilityViolations` step, so `test:a11y:sauce` runs every flow and then fails on the live
+store by design. The scan files are written either way: run the report commands after a failing run.
 
 It writes `a11y-compare.xlsx` (Summary, Violations, Comparison with a per-state delta block) and
 `a11y-report.html` (with a Baseline comparison section) into the head run folder, and copies both to

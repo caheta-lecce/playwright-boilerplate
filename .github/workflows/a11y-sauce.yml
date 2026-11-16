@@ -99,7 +99,12 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           printf '**a11y-sauce mode: %s** (%s)\n\n' "$MODE" "$WHY" >> "$GITHUB_STEP_SUMMARY"
 
+      # The specs fail on purpose when the store has violations (aggregate step). The scan steps are
+      # continue-on-error so the job still succeeds: a successful run is what later compares find a
+      # baseline in. Only fail_on_new gates the job.
       - name: Scan the baseline
+        id: scan_baseline
+        continue-on-error: true
         if: ${{ steps.mode.outputs.mode == 'baseline' }}
         # Set to empty on purpose: a baseline never simulates fixes.
         env:
@@ -107,10 +112,28 @@ jobs:
         run: npm run test:a11y:sauce
 
       - name: Scan with simulated fixes
+        id: scan_compare
+        continue-on-error: true
         if: ${{ steps.mode.outputs.mode == 'compare' }}
         env:
           A11Y_SIMULATE_FIXED: ${{ steps.mode.outputs.simulate_fixed }}
         run: npm run test:a11y:sauce
+
+      - name: Summarise the scans
+        env:
+          SCAN_OUTCOME: ${{ steps.scan_baseline.outcome }}${{ steps.scan_compare.outcome }}
+        run: |
+          SCANS=$(find "reports/a11y/$A11Y_RUN_ID" -name '*.json' | wc -l)
+          if [ "$SCANS" -eq 0 ]; then
+            echo "::error::No scan files were written: the flows did not reach any scan (site down or UI changed)."
+            exit 1
+          fi
+          if echo "$SCAN_OUTCOME" | grep -q failure; then
+            NOTE="Playwright reported failing tests: expected, the aggregate a11y check fails when the store has violations."
+          else
+            NOTE="All scan tests passed (no violations)."
+          fi
+          printf '%s scan file(s) written. %s\n\n' "$SCANS" "$NOTE" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build the baseline reports
         if: ${{ steps.mode.outputs.mode == 'baseline' }}
