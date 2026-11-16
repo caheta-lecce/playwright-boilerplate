@@ -45,6 +45,12 @@ export default defineConfig(
     },
   },
   {
+    // Node runs these files directly (native type stripping) and cannot resolve tsconfig aliases,
+    // so their runtime imports are relative; type-only imports still use the aliases.
+    files: ['scripts/**/*.ts', 'unit-tests/**/*.ts'],
+    rules: { 'no-restricted-imports': 'off' },
+  },
+  {
     // Expressions and typed function expressions (fixtures, test callbacks) stay un-annotated.
     files: ['src/**/*.ts', 'lib/**/*.ts'],
     rules: {

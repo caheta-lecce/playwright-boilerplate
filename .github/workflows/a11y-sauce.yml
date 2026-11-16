@@ -1,0 +1,109 @@
+name: A11y Sauce baseline and compare
+# Manual only. `baseline` scans the public Sauce demo store and keeps the result as the a11y-baseline
+# artifact; `compare` scans again, pretends the rules in `simulate_fixed` were fixed, and compares
+# with the latest baseline (Excel + HTML report, counts in the job summary).
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: baseline = store a new baseline, compare = scan again and compare with it
+        type: choice
+        options: [baseline, compare]
+        default: baseline
+      simulate_fixed:
+        description: Comma-separated axe rule ids to pretend were fixed (compare mode only)
+        type: string
+        default: color-contrast
+      fail_on_new:
+        description: Fail the run when the comparison finds new violations (compare mode only)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read # download the baseline artifact of an earlier run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Same pinned image as ci.yml: the tag must equal @playwright/test (npm run playwright:image:check).
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble
+      options: --user 1001
+    env:
+      A11Y_RUN_ID: ci-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # compare: downloaded into its own folder (only what came from the artifact), then moved next to the new run.
+      - name: Download the latest baseline
+        if: ${{ inputs.mode == 'compare' }}
+        uses: dawidd6/action-download-artifact@a92c7ae74cf1df8810783758581e485ac3aaa309 # v28
+        with:
+          workflow: a11y-sauce.yml
+          workflow_conclusion: success
+          name: a11y-baseline
+          path: reports/a11y-baseline-dl
+          # Without this the action only inspects the latest successful run, which after a compare
+          # run has no a11y-baseline artifact.
+          search_artifacts: true
+          if_no_artifact_found: fail
+
+      - name: Scan the baseline
+        if: ${{ inputs.mode == 'baseline' }}
+        # Set to empty on purpose: a baseline never simulates fixes.
+        env:
+          A11Y_SIMULATE_FIXED: ''
+        run: npm run test:a11y:sauce
+
+      - name: Scan with simulated fixes
+        if: ${{ inputs.mode == 'compare' }}
+        env:
+          A11Y_SIMULATE_FIXED: ${{ inputs.simulate_fixed }}
+        run: npm run test:a11y:sauce
+
+      - name: Build the baseline reports
+        if: ${{ inputs.mode == 'baseline' }}
+        run: npm run a11y:compare:report -- "$A11Y_RUN_ID"
+
+      - name: Compare with the baseline
+        if: ${{ inputs.mode == 'compare' }}
+        env:
+          FAIL_ON_NEW: ${{ inputs.fail_on_new }}
+        run: |
+          BASE_ID=$(ls reports/a11y-baseline-dl | sort | tail -n 1)
+          mkdir -p reports/a11y
+          mv "reports/a11y-baseline-dl/$BASE_ID" reports/a11y/
+          echo "Baseline run: $BASE_ID"
+          FLAGS=""
+          if [ "$FAIL_ON_NEW" = "true" ]; then FLAGS="--fail-on-new"; fi
+          npm run a11y:compare:report -- "$BASE_ID" "$A11Y_RUN_ID" $FLAGS
+
+      - name: Upload the baseline
+        if: ${{ !cancelled() && inputs.mode == 'baseline' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-baseline
+          path: reports/a11y
+          retention-days: 90
+      - name: Upload the comparison
+        if: ${{ !cancelled() && inputs.mode == 'compare' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-compare
+          path: reports/a11y/${{ env.A11Y_RUN_ID }}
+          retention-days: 30
+      - name: Upload the Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-sauce
+          path: playwright-report/
+          retention-days: 7

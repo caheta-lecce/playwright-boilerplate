@@ -8,9 +8,15 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
+// The suites cover the example app only; the external sauce-demo project is run explicitly.
+const EXAMPLE_PROJECTS = ['chromium', 'firefox', 'webkit'].map((name) => `--project=${name}`);
+
 export const SUITES = ['smoke', 'regression', 'destructive'];
 
-export function suiteArgs(suite, extraArgs = []) {
+export function suiteArgs(suite, rawArgs = []) {
+  const extraArgs = rawArgs.some((arg) => arg.startsWith('--project'))
+    ? rawArgs
+    : [...EXAMPLE_PROJECTS, ...rawArgs];
   if (!SUITES.includes(suite))
     throw new Error(`Unknown suite "${suite}". Use: ${SUITES.join(', ')}`);
   return suite === 'destructive'

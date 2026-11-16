@@ -5,6 +5,7 @@
     "moduleResolution": "bundler",
     "strict": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -19,5 +20,12 @@
       "@data/*": ["./src/data/*"]
     }
   },
-  "include": ["playwright.config.ts", "lib/**/*.ts", "src/**/*.ts"]
+  "include": [
+    "playwright.config.ts",
+    "lib/**/*.ts",
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    "scripts/**/*.d.mts",
+    "unit-tests/**/*.ts"
+  ]
 }

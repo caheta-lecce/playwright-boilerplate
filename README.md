@@ -21,6 +21,11 @@ external account, database or server.
 - **Accessibility checks**: a `scanAxe()` fixture runs [axe-core](https://github.com/dequelabs/axe-core)
   against WCAG 2.1 A/AA, attaches the full results to the report and saves them under
   `reports/a11y/`, with `a11y:report` (Markdown + CSV) and `a11y:compare` (new / fixed / unchanged).
+  `a11y:report:xlsx` writes an Excel workbook (set `A11Y_SPRINT` to fill its Sprint column). The
+  `sauce-demo-chromium` project scans the public Sauce demo store (`src/tests/ui/sauce-demo/`) in
+  report-only mode: no auth setup, `npm run test:a11y:sauce` then `npm run a11y:report:xlsx`.
+  `a11y:compare:report` compares two runs (see [Baseline and compare](#baseline-and-compare-a11y)).
+  The Excel script is TypeScript run by Node's native type stripping (Node 22.18+).
 - **Cross-browser**: Chromium, Firefox and WebKit by default.
 - **Quality tooling**: ESLint, Prettier, strict TypeScript, and a Husky pre-commit hook with
   lint-staged.
@@ -50,27 +55,54 @@ accessibility scan for each UI state.
 
 ## Scripts
 
-| Command                                          | What it does                                           |
-| ------------------------------------------------ | ------------------------------------------------------ |
-| `npm test`                                       | Run all tests in all browsers, except `@destructive`   |
-| `npm run test:ci`                                | Like `npm test` plus `--forbid-only` (what CI runs)    |
-| `npm run test:changed` / `test:changed:main`     | Run only specs changed since `HEAD` / `main`           |
-| `npm run test:debug`                             | Run with the Playwright inspector (`--debug`)          |
-| `npm run test:smoke` / `test:regression`         | Run only the `@smoke` or `@regression` suite           |
-| `npm run test:destructive`                       | Run only the `@destructive` tests                      |
-| `npm run test:chromium` / `:firefox` / `:webkit` | Run tests in one browser                               |
-| `npm run test:headed`                            | Run tests with a visible browser                       |
-| `npm run test:ui`                                | Open Playwright UI mode                                |
-| `npm run test:list`                              | List tests without running them                        |
-| `npm run test:unit`                              | Run the `node:test` unit tests                         |
-| `npm run a11y:report`                            | Markdown + CSV of the latest axe run (`reports/a11y/`) |
-| `npm run a11y:compare -- <base> <head>`          | New / fixed / unchanged violations; exit 1 on new      |
-| `npm run report`                                 | Open the last HTML report                              |
-| `npm run guidelines:check`                       | Check the mechanical repository guidelines             |
-| `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries              |
-| `npm run type:check`                             | Type-check with `tsc`                                  |
-| `npm run lint` / `lint:fix`                      | Lint with ESLint, optionally applying fixes            |
-| `npm run format` / `format:check`                | Format, or check formatting, with Prettier             |
+| Command                                          | What it does                                                       |
+| ------------------------------------------------ | ------------------------------------------------------------------ |
+| `npm test`                                       | Run all tests in all browsers, except `@destructive`               |
+| `npm run test:ci`                                | Like `npm test` plus `--forbid-only` (what CI runs)                |
+| `npm run test:changed` / `test:changed:main`     | Run only specs changed since `HEAD` / `main`                       |
+| `npm run test:debug`                             | Run with the Playwright inspector (`--debug`)                      |
+| `npm run test:smoke` / `test:regression`         | Run only the `@smoke` or `@regression` suite                       |
+| `npm run test:destructive`                       | Run only the `@destructive` tests                                  |
+| `npm run test:chromium` / `:firefox` / `:webkit` | Run tests in one browser                                           |
+| `npm run test:headed`                            | Run tests with a visible browser                                   |
+| `npm run test:ui`                                | Open Playwright UI mode                                            |
+| `npm run test:list`                              | List tests without running them                                    |
+| `npm run test:unit`                              | Run the `node:test` unit tests                                     |
+| `npm run a11y:report`                            | Markdown + CSV of the latest axe run (`reports/a11y/`)             |
+| `npm run a11y:compare -- <base> <head>`          | New / fixed / unchanged violations; exit 1 on new                  |
+| `npm run a11y:report:xlsx [-- <run> --out <f>]`  | Excel report (Summary + Violations) of an axe run                  |
+| `npm run a11y:compare:report -- <base> <head>`   | Excel + HTML comparison of two axe runs (Fixed / Still open / New) |
+| `npm run test:a11y:sauce`                        | Report-only axe scans of the external Sauce demo store             |
+| `npm run report`                                 | Open the last HTML report                                          |
+| `npm run guidelines:check`                       | Check the mechanical repository guidelines                         |
+| `npm run ai:skills:sync` / `ai:skills:check`     | Generate, or verify, the AI skill entries                          |
+| `npm run type:check`                             | Type-check with `tsc`                                              |
+| `npm run lint` / `lint:fix`                      | Lint with ESLint, optionally applying fixes                        |
+| `npm run format` / `format:check`                | Format, or check formatting, with Prettier                         |
+
+## Baseline and compare (a11y)
+
+Keep one scan as a **baseline**, re-scan later and see which findings were fixed, are still open, or are new.
+
+```bash
+A11Y_RUN_ID=local-baseline npm run test:a11y:sauce
+# pretend color-contrast was fixed (what-if: those rules are dropped at scan time and recorded
+# as `simulatedFixed` in the scan files)
+A11Y_RUN_ID=local-head A11Y_SIMULATE_FIXED=color-contrast npm run test:a11y:sauce
+npm run a11y:compare:report -- local-baseline local-head [--fail-on-new] [--out-dir <dir>]
+```
+
+It writes `a11y-compare.xlsx` (Summary, Violations, Comparison with a per-state delta block) and
+`a11y-report.html` (with a Baseline comparison section) into the head run folder, and copies both to
+`playwright-report/a11y/`. With one run argument it writes a single-run `a11y-report.xlsx` and HTML.
+Exit code is 0 unless `--fail-on-new` is set and there are new findings. A finding is one element of
+one rule in one labelled state.
+
+The manual workflow [`a11y-sauce.yml`](.github/workflows/a11y-sauce.yml) automates this in CI. Inputs:
+`mode` (`baseline` stores the `a11y-baseline` artifact for 90 days; `compare` downloads the latest
+baseline, re-scans and uploads `a11y-compare`), `simulate_fixed` (rule ids, default `color-contrast`)
+and `fail_on_new` (default false). The fixed counts appear in the job summary. `npm test` and the
+suites cover only the example projects, so they never scan the external site.
 
 ## Test tags
 
